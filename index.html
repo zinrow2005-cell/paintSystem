@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#fff5da" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-  <title>小小畫家學習樂園 V1.7.40｜調色盤互動與自訂色修正版</title>
+  <title>小小畫家學習樂園 V1.7.41｜圓形色盤直接選色版</title>
   <link rel="manifest" href="./manifest.webmanifest" />
   <link rel="icon" href="./icons/icon-192.png" />
   <link rel="apple-touch-icon" href="./icons/icon-192.png" />
@@ -17,7 +17,7 @@
     <button class="icon-btn" id="homeBtn" aria-label="首頁">🏠</button>
     <div class="brand">
       <h1>🎨 小小畫家學習樂園</h1>
-      <div class="version">V1.7.40｜調色盤互動與自訂快速色修正</div>
+      <div class="version">V1.7.41｜圓形色盤直接選色・自訂快速色</div>
     </div>
     <div class="top-actions">
       <button class="star-badge" id="starBadge" aria-label="獎勵星星">⭐ <b id="starCount">0</b></button>
@@ -425,14 +425,10 @@
         </div>
         <div class="color-wheel-side">
           <div class="color-wheel-preview-row"><span id="colorWheelPreview" class="color-wheel-preview"></span><b id="colorWheelHex">#222222</b></div>
-          <label class="color-brightness-control" for="colorBrightnessRange">
-            <span>明暗 <b id="colorBrightnessValue">100%</b></span>
-            <input id="colorBrightnessRange" type="range" min="20" max="100" step="1" value="100" />
-          </label>
-          <div class="color-wheel-help">在圓盤上拖曳選顏色，往中心顏色會變淡；下方滑桿可調整明暗。</div>
+          <div class="color-wheel-help direct-color-help">直接點選或拖曳圓盤：畫筆會立即使用你看到的顏色。往中心是較淡的顏色。</div>
           <div class="color-wheel-actions">
             <button id="saveWheelColorBtn" class="soft-btn full" type="button">☆ 收藏到我的顏色</button>
-            <button id="confirmColorWheelBtn" class="primary-btn full" type="button">✓ 使用顏色</button>
+            <button id="confirmColorWheelBtn" class="primary-btn full" type="button">✓ 完成</button>
           </div>
         </div>
       </div>

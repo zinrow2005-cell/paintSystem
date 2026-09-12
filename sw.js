@@ -1,4 +1,4 @@
-const CACHE_NAME = 'kids-drawing-v1-7-40-palette-wheel-20260912-01';
+const CACHE_NAME = 'kids-drawing-v1-7-41-direct-color-wheel-20260912-01';
 
 const CORE_ASSETS = [
   './',

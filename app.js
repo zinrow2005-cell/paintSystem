@@ -1371,23 +1371,23 @@ function drawColorWheel(){
   for(let y=0;y<h;y++)for(let x=0;x<w;x++){const dx=x-cx,dy=y-cy,r=Math.hypot(dx,dy),i=(y*w+x)*4;if(r>R){d[i+3]=0;continue}let hue=Math.atan2(dy,dx)*180/Math.PI;if(hue<0)hue+=360;const sat=Math.min(1,r/R),hex=hsvToHex(hue,sat,1),rgb=parseInt(hex.slice(1),16);d[i]=(rgb>>16)&255;d[i+1]=(rgb>>8)&255;d[i+2]=rgb&255;d[i+3]=255}ctx.putImageData(img,0,0)
 }
 function updateColorWheelPointer(){
-  const p=$('#colorWheelPointer'),shell=$('#colorWheelShell');if(!p||!shell)return;const a=colorWheelHSV.h*Math.PI/180,r=colorWheelHSV.s*47;p.style.left=`${50+Math.cos(a)*r}%`;p.style.top=`${50+Math.sin(a)*r}%`;const hex=hsvToHex(colorWheelHSV.h,colorWheelHSV.s,colorWheelHSV.v),preview=$('#colorWheelPreview'),code=$('#colorWheelHex'),range=$('#colorBrightnessRange'),value=$('#colorBrightnessValue');if(preview)preview.style.background=hex;if(code)code.textContent=hex.toUpperCase();if(range)range.value=String(Math.round(colorWheelHSV.v*100));if(value)value.textContent=`${Math.round(colorWheelHSV.v*100)}%`
+  const p=$('#colorWheelPointer'),shell=$('#colorWheelShell');if(!p||!shell)return;const a=colorWheelHSV.h*Math.PI/180,r=colorWheelHSV.s*47;p.style.left=`${50+Math.cos(a)*r}%`;p.style.top=`${50+Math.sin(a)*r}%`;const hex=hsvToHex(colorWheelHSV.h,colorWheelHSV.s,1),preview=$('#colorWheelPreview'),code=$('#colorWheelHex');if(preview)preview.style.background=hex;if(code)code.textContent=hex.toUpperCase()
 }
 function setWheelFromPoint(e){
-  const canvas=$('#colorWheelCanvas'),r=canvas.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top,cx=r.width/2,cy=r.height/2,dx=x-cx,dy=y-cy,R=Math.min(r.width,r.height)/2,dist=Math.hypot(dx,dy);colorWheelHSV.s=Math.min(1,dist/R);let h=Math.atan2(dy,dx)*180/Math.PI;if(h<0)h+=360;colorWheelHSV.h=h;updateColorWheelPointer()
+  const canvas=$('#colorWheelCanvas'),r=canvas.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top,cx=r.width/2,cy=r.height/2,dx=x-cx,dy=y-cy,R=Math.min(r.width,r.height)/2,dist=Math.hypot(dx,dy);colorWheelHSV.s=Math.min(1,dist/R);let h=Math.atan2(dy,dx)*180/Math.PI;if(h<0)h+=360;colorWheelHSV.h=h;colorWheelHSV.v=1;updateColorWheelPointer();selectColor(hsvToHex(colorWheelHSV.h,colorWheelHSV.s,1))
 }
 function openColorWheel(){
   const overlay=$('#colorWheelPopover');if(!overlay)return;
   const host=(drawFocusMode&&fullscreenShell?.isConnected)?fullscreenShell:document.body;
   if(overlay.parentElement!==host)host.appendChild(overlay);
-  colorWheelHSV=hexToHsv(state.color);if(colorWheelHSV.v<.2)colorWheelHSV.v=.2;
+  colorWheelHSV=hexToHsv(state.color);colorWheelHSV.v=1;
   overlay.hidden=false;overlay.removeAttribute('hidden');overlay.classList.add('is-open');overlay.setAttribute('aria-hidden','false');
   document.body.classList.add('color-wheel-open');
   overlay.style.display='grid';overlay.style.visibility='visible';overlay.style.opacity='1';overlay.style.pointerEvents='auto';
   requestAnimationFrame(()=>requestAnimationFrame(()=>{drawColorWheel();updateColorWheelPointer();$('#colorWheelCanvas')?.focus?.()}));
 }
 function closeColorWheel(apply=false){
-  if(apply)selectColor(hsvToHex(colorWheelHSV.h,colorWheelHSV.s,colorWheelHSV.v));
+  if(apply)selectColor(hsvToHex(colorWheelHSV.h,colorWheelHSV.s,1));
   colorWheelDragging=false;colorWheelPointerId=null;const overlay=$('#colorWheelPopover');
   if(overlay){overlay.classList.remove('is-open');overlay.hidden=true;overlay.setAttribute('hidden','');overlay.setAttribute('aria-hidden','true');overlay.style.removeProperty('display');overlay.style.removeProperty('visibility');overlay.style.removeProperty('opacity');overlay.style.removeProperty('pointer-events');if(overlay.parentElement!==document.body)document.body.appendChild(overlay)}
   document.body.classList.remove('color-wheel-open');
@@ -1405,11 +1405,10 @@ function setupColorWheel(){
     canvas.addEventListener('touchmove',e=>{if(!colorWheelDragging)return;e.preventDefault();touchPoint(e)},{passive:false});
     canvas.addEventListener('touchend',()=>{colorWheelDragging=false},{passive:false});
   }
-  const range=$('#colorBrightnessRange');if(range)range.oninput=e=>{colorWheelHSV.v=Math.max(.2,Math.min(1,Number(e.target.value)/100));updateColorWheelPointer()};
   const legacyOpen=$('#openColorWheelBtn');if(legacyOpen)bindReliableTap(legacyOpen,()=>openColorWheel());
   bindReliableTap($('#closeColorWheelBtn'),()=>closeColorWheel(false));
   bindReliableTap($('#confirmColorWheelBtn'),()=>closeColorWheel(true));
-  bindReliableTap($('#saveWheelColorBtn'),()=>{const hex=hsvToHex(colorWheelHSV.h,colorWheelHSV.s,colorWheelHSV.v);addQuickColor(hex,{select:true,notify:true});closeColorWheel(false)});
+  bindReliableTap($('#saveWheelColorBtn'),()=>{const hex=hsvToHex(colorWheelHSV.h,colorWheelHSV.s,1);addQuickColor(hex,{select:true,notify:true});closeColorWheel(false)});
   const saveCurrent=$('#saveCurrentColorBtn');if(saveCurrent)bindReliableTap(saveCurrent,()=>addQuickColor(state.color,{select:true,notify:true}));
   const clearCustom=$('#clearCustomColorsBtn');if(clearCustom)bindReliableTap(clearCustom,()=>clearCustomColors());
   const overlay=$('#colorWheelPopover');if(overlay)overlay.addEventListener('pointerdown',e=>{if(e.target===overlay){e.preventDefault();closeColorWheel(false)}},{passive:false});
