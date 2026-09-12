@@ -852,7 +852,7 @@ body.draw-focus-mode{overflow:hidden!important}
 }
 
 
-/* V1.7.33｜可收合工具列＋全螢幕畫板穩定修正＋手機調色盤完整展開 */
+/* V1.7.34｜可收合工具列＋全螢幕畫板穩定修正＋手機調色盤完整展開 */
 .compact-draw-tools{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px;position:relative;z-index:16}
 .compact-tool-panel{min-width:0;border:1px solid #eadfce;border-radius:16px;background:rgba(255,252,246,.94);box-shadow:0 6px 16px rgba(70,55,30,.05);overflow:visible}
 .compact-tool-panel>summary{list-style:none;display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:42px;padding:8px 11px;cursor:pointer;font-weight:1000;color:#42506a;touch-action:manipulation;-webkit-user-select:none;user-select:none}
@@ -908,3 +908,100 @@ body.draw-focus-mode{overflow:hidden!important}
 body.draw-focus-mode .color-wheel-overlay{z-index:320!important}
 body.draw-focus-mode .toast{z-index:340!important}
 body.draw-focus-mode .reward-overlay{z-index:300!important}
+
+
+/* V1.7.34｜全螢幕畫板重構：獨立 viewport shell，避免 Canvas 被 grid 壓扁 */
+body.draw-focus-mode{overflow:hidden!important;overscroll-behavior:none!important}
+.draw-fullscreen-shell{
+  position:fixed!important;z-index:2147482000!important;
+  width:var(--focus-vw,100vw)!important;height:var(--focus-vh,100dvh)!important;
+  max-width:none!important;max-height:none!important;margin:0!important;padding:max(6px,env(safe-area-inset-top)) max(6px,env(safe-area-inset-right)) max(6px,env(safe-area-inset-bottom)) max(6px,env(safe-area-inset-left))!important;
+  display:grid!important;grid-template-rows:auto minmax(0,1fr) auto!important;gap:6px!important;
+  overflow:hidden!important;isolation:isolate!important;background:linear-gradient(180deg,#fffdf9,#fff6e9)!important;
+  box-sizing:border-box!important;touch-action:manipulation;
+}
+.draw-fullscreen-top,.draw-fullscreen-bottom{min-width:0;position:relative;z-index:30}
+.draw-fullscreen-main{position:relative;min-width:0;min-height:0;overflow:hidden;display:grid;place-items:center;padding:4px;border-radius:20px;background:linear-gradient(180deg,#fffefb,#fff8ef)}
+.draw-fullscreen-shell .focus-learning-bar{display:grid!important;grid-template-columns:minmax(0,1fr) auto auto;gap:8px;align-items:center;padding:6px 8px!important;margin:0!important;border-radius:16px!important}
+.draw-fullscreen-shell .focus-mode-tabs{min-width:0!important;width:min(520px,100%)!important}
+.draw-fullscreen-shell .focus-current-word{justify-self:end;max-width:260px}
+.focus-exit-btn{border:0;border-radius:13px;padding:10px 13px;background:linear-gradient(180deg,#fff0ec,#ffdcd2);color:#a14837;font-weight:1000;white-space:nowrap;cursor:pointer;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+.draw-fullscreen-shell .canvas-stage{
+  position:relative!important;display:grid!important;place-items:center!important;width:100%!important;height:100%!important;min-width:0!important;min-height:0!important;
+  margin:0!important;padding:5px!important;border:0!important;border-radius:18px!important;overflow:hidden!important;background:transparent!important;box-shadow:none!important;
+}
+.draw-fullscreen-shell .canvas-wrap{
+  position:relative!important;display:block!important;margin:auto!important;min-width:280px!important;min-height:210px!important;
+  width:min(100%,960px)!important;height:auto;aspect-ratio:4/3!important;max-width:100%!important;max-height:100%!important;
+  border:3px dashed #e4d7c4!important;border-radius:22px!important;background:#fffdfb!important;box-shadow:0 14px 36px rgba(70,52,27,.10)!important;overflow:hidden!important;
+}
+.draw-fullscreen-shell .canvas-wrap canvas{position:absolute!important;inset:0!important;width:100%!important;height:100%!important}
+.draw-fullscreen-shell .palette-dock{position:absolute!important;left:8px!important;top:8px!important;z-index:60!important;width:190px!important;min-width:190px!important;max-height:calc(100% - 16px)!important;overflow:auto!important;background:rgba(255,249,238,.97)!important;backdrop-filter:blur(10px)!important}
+.draw-fullscreen-shell .palette-dock.collapsed{width:48px!important;min-width:48px!important;overflow:hidden!important}
+.draw-fullscreen-shell .toolbar{display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;gap:6px 10px!important;align-items:center!important;margin:0!important;padding:7px 9px!important;border-radius:18px!important;max-height:190px;overflow:auto;background:rgba(255,253,249,.98)!important}
+.draw-fullscreen-shell .toolbar .brush-realism-note{display:none!important}
+.draw-fullscreen-shell .brush-control-panel{min-width:0!important;display:grid;grid-template-columns:minmax(300px,1fr) minmax(220px,.6fr);gap:8px;align-items:center}
+.draw-fullscreen-shell .size-row,.draw-fullscreen-shell .opacity-control{margin:0!important;padding:6px 8px!important;min-width:0}
+.draw-fullscreen-shell .action-row{margin:0!important;padding:6px 8px!important;justify-content:flex-end;white-space:nowrap}
+.draw-fullscreen-shell .focus-learning-panel{display:none;position:absolute!important;inset:0!important;width:100%!important;height:100%!important;min-height:0!important;overflow:hidden!important;border-radius:18px;background:linear-gradient(180deg,#fffefc,#fff6e8);padding:10px}
+.draw-fullscreen-shell.focus-pane-practice .canvas-stage,
+.draw-fullscreen-shell.focus-pane-speech .canvas-stage{display:none!important}
+.draw-fullscreen-shell.focus-pane-practice .focus-learning-panel,.draw-fullscreen-shell.focus-pane-speech .focus-learning-panel{display:block!important}
+.draw-fullscreen-shell.focus-pane-practice .draw-fullscreen-bottom,.draw-fullscreen-shell.focus-pane-speech .draw-fullscreen-bottom{display:none!important}
+.draw-fullscreen-shell .focus-learning-host{height:100%!important;min-height:0!important}
+.draw-fullscreen-shell .learn-pronunciation-panel,.draw-fullscreen-shell .learn-practice-panel{height:100%!important;min-height:0!important}
+.draw-fullscreen-shell .learn-pronunciation-panel{display:grid;grid-template-columns:minmax(120px,.7fr) minmax(0,1.3fr);grid-template-rows:auto auto auto auto;gap:10px 22px;align-content:center;align-items:center;max-width:900px;margin:auto;padding:20px}
+.draw-fullscreen-shell .learn-pronunciation-panel .learn-emoji{grid-row:1/5;width:150px;height:150px;font-size:88px;margin:auto}
+.draw-fullscreen-shell .learn-pronunciation-panel .word-en{font-size:clamp(38px,6vw,70px);text-align:left;letter-spacing:.08em}
+.draw-fullscreen-shell .learn-pronunciation-panel .phonetic{font-size:clamp(22px,3vw,34px);text-align:left;margin:0}
+.draw-fullscreen-shell .learn-pronunciation-panel .word-zh{font-size:clamp(40px,6vw,72px);text-align:left}
+.draw-fullscreen-shell .learn-pronunciation-panel .zhuyin{font-size:clamp(22px,3vw,34px);text-align:left;margin:0}
+.draw-fullscreen-shell .learn-pronunciation-panel .divider{display:none}
+.draw-fullscreen-shell .learn-pronunciation-panel .speak-row{grid-column:2;grid-template-columns:1fr 1fr;gap:10px}
+.draw-fullscreen-shell .learn-pronunciation-panel .speak-btn{min-height:58px;font-size:18px}
+.draw-fullscreen-shell .learn-practice-panel{display:grid;grid-template-rows:auto auto auto minmax(0,1fr) auto;gap:8px;padding:4px}
+.draw-fullscreen-shell .learn-practice-panel .practice-title{font-size:clamp(20px,3vw,30px);margin:0}
+.draw-fullscreen-shell .learn-practice-panel .practice-note{margin:0;font-size:12px}
+.draw-fullscreen-shell .learn-practice-panel .practice-tabs{margin:0;max-width:680px;width:100%;justify-self:center}
+.draw-fullscreen-shell .learn-practice-panel .practice-wrap{width:100%;height:100%;min-height:240px;aspect-ratio:auto!important;margin:0 auto;border-radius:22px}
+.draw-fullscreen-shell .learn-practice-panel .practice-actions{margin:0;justify-content:center}
+.draw-fullscreen-shell .learn-practice-panel .practice-actions button{max-width:260px;min-height:44px}
+body.draw-focus-mode>.topbar,body.draw-focus-mode>main{pointer-events:none!important}
+body.draw-focus-mode>#drawFullscreenShell{pointer-events:auto!important}
+@media(max-width:800px){
+  .draw-fullscreen-shell{gap:5px!important;padding:max(4px,env(safe-area-inset-top)) max(4px,env(safe-area-inset-right)) max(4px,env(safe-area-inset-bottom)) max(4px,env(safe-area-inset-left))!important}
+  .draw-fullscreen-shell .focus-learning-bar{grid-template-columns:minmax(0,1fr) auto!important;padding:5px!important}
+  .draw-fullscreen-shell .focus-current-word{display:none!important}
+  .draw-fullscreen-shell .focus-mode-btn{padding:8px 5px;font-size:12px}
+  .focus-exit-btn{padding:8px 9px;font-size:12px}
+  .draw-fullscreen-main{padding:2px;border-radius:14px}
+  .draw-fullscreen-shell .canvas-wrap{min-width:240px!important;min-height:180px!important;border-radius:16px!important}
+  .draw-fullscreen-shell .palette-dock{left:5px!important;top:5px!important;width:174px!important;min-width:174px!important;max-height:calc(100% - 10px)!important}
+  .draw-fullscreen-shell .palette-dock.collapsed{width:46px!important;min-width:46px!important}
+  .draw-fullscreen-shell .toolbar{grid-template-columns:1fr!important;max-height:185px;padding:5px!important;gap:4px!important}
+  .draw-fullscreen-shell .brush-control-panel{grid-template-columns:1fr!important;gap:4px}
+  .draw-fullscreen-shell .action-row{justify-content:stretch!important}.draw-fullscreen-shell .action-row button{flex:1;padding:8px 6px;font-size:11px}
+  .draw-fullscreen-shell .learn-pronunciation-panel{grid-template-columns:1fr;grid-template-rows:auto;gap:6px;padding:6px;overflow:auto;text-align:center}
+  .draw-fullscreen-shell .learn-pronunciation-panel .learn-emoji{grid-row:auto;width:72px;height:72px;font-size:46px}
+  .draw-fullscreen-shell .learn-pronunciation-panel .word-en,.draw-fullscreen-shell .learn-pronunciation-panel .phonetic,.draw-fullscreen-shell .learn-pronunciation-panel .word-zh,.draw-fullscreen-shell .learn-pronunciation-panel .zhuyin{text-align:center}
+  .draw-fullscreen-shell .learn-pronunciation-panel .word-en{font-size:34px}.draw-fullscreen-shell .learn-pronunciation-panel .word-zh{font-size:38px}
+  .draw-fullscreen-shell .learn-pronunciation-panel .phonetic,.draw-fullscreen-shell .learn-pronunciation-panel .zhuyin{font-size:20px}
+  .draw-fullscreen-shell .learn-pronunciation-panel .speak-row{grid-column:auto;grid-template-columns:1fr 1fr;width:100%}
+  .draw-fullscreen-shell .learn-pronunciation-panel .speak-btn{min-height:46px;font-size:14px}
+  .draw-fullscreen-shell .learn-practice-panel{gap:5px}.draw-fullscreen-shell .learn-practice-panel .practice-title{font-size:19px}
+  .draw-fullscreen-shell .learn-practice-panel .practice-note{font-size:10px}.draw-fullscreen-shell .learn-practice-panel .practice-tabs .seg{font-size:12px;padding:8px 3px}
+  .draw-fullscreen-shell .learn-practice-panel .practice-wrap{min-height:0;height:100%}.draw-fullscreen-shell .learn-practice-panel .practice-actions button{min-height:40px;font-size:12px}
+}
+@media(max-width:650px){
+  .draw-fullscreen-shell .palette-dock:not(.collapsed){left:4px!important;right:4px!important;top:4px!important;width:auto!important;min-width:0!important;max-height:none!important;overflow:visible!important}
+  .draw-fullscreen-shell .palette-dock:not(.collapsed) .palette-body{display:grid!important;grid-template-columns:1fr!important;gap:7px!important;overflow:visible!important;max-height:none!important}
+  .draw-fullscreen-shell .palette-dock:not(.collapsed) .palette-tools{grid-template-columns:repeat(7,minmax(0,1fr))!important;overflow:visible!important}
+  .draw-fullscreen-shell .palette-dock:not(.collapsed) .palette-colors{grid-template-columns:repeat(10,minmax(0,1fr))!important;overflow:visible!important}
+  .draw-fullscreen-shell .palette-dock:not(.collapsed) .color-chip{width:26px!important;height:26px!important}
+}
+@media(orientation:landscape) and (max-height:760px){
+  .draw-fullscreen-shell .focus-learning-bar{padding:3px 5px!important}.focus-exit-btn{padding:6px 8px}.draw-fullscreen-shell .focus-mode-btn{padding:6px 7px}
+  .draw-fullscreen-shell .toolbar{max-height:145px!important;grid-template-columns:minmax(0,1fr) auto!important}
+  .draw-fullscreen-shell .brush-control-panel{grid-template-columns:minmax(300px,1fr) minmax(180px,.55fr)!important}
+  .draw-fullscreen-shell .size-row,.draw-fullscreen-shell .opacity-control,.draw-fullscreen-shell .action-row{padding:4px 6px!important}
+}

@@ -1314,7 +1314,8 @@ function setupColorWheel(){
   $('#colorBrightnessRange').oninput=e=>{colorWheelHSV.v=Math.max(.2,Math.min(1,Number(e.target.value)/100));updateColorWheelPointer()};$('#openColorWheelBtn').onclick=openColorWheel;$('#closeColorWheelBtn').onclick=()=>closeColorWheel(false);$('#confirmColorWheelBtn').onclick=()=>closeColorWheel(true);$('#colorWheelPopover').addEventListener('pointerdown',e=>{if(e.target===$('#colorWheelPopover'))closeColorWheel(false)})
 }
 
-let drawFocusMode=false,focusPaletteRestore=false,focusLearningPane='draw',drawFullscreenAnchor=null;
+let drawFocusMode=false,focusPaletteRestore=false,focusLearningPane='draw';
+let fullscreenShell=null,fullscreenAnchors=new Map();
 const focusPronunciationPanel=()=>$('#learnPronunciationPanel');
 const focusPracticePanel=()=>$('#learnPracticePanel');
 function updateFocusCurrentLabel(){
@@ -1336,85 +1337,98 @@ function restoreLearningPanels(){
   if(practice&&practice.parentElement!==card)card.appendChild(practice);
   if(pron)pron.hidden=false;if(practice)practice.hidden=false;
 }
-function mountDrawCardToViewport(card){
-  if(!card||card.parentElement===document.body)return;
-  drawFullscreenAnchor=document.createComment('draw-fullscreen-anchor');
-  card.parentNode.insertBefore(drawFullscreenAnchor,card);
-  document.body.appendChild(card);
+function rememberFullscreenNode(node,key){
+  if(!node||fullscreenAnchors.has(key))return;
+  const anchor=document.createComment(`fullscreen-${key}-anchor`);
+  node.parentNode?.insertBefore(anchor,node);fullscreenAnchors.set(key,anchor);
 }
-function restoreDrawCardFromViewport(card){
-  if(!card||!drawFullscreenAnchor)return;
-  const parent=drawFullscreenAnchor.parentNode;
-  if(parent)parent.insertBefore(card,drawFullscreenAnchor);
-  drawFullscreenAnchor.remove();drawFullscreenAnchor=null;
+function restoreFullscreenNode(node,key){
+  const anchor=fullscreenAnchors.get(key);if(!node||!anchor)return;
+  anchor.parentNode?.insertBefore(node,anchor);anchor.remove();fullscreenAnchors.delete(key);
+}
+function updateFullscreenViewportBox(){
+  const shell=$('#drawFullscreenShell');if(!shell)return;
+  const vv=window.visualViewport;
+  const w=Math.max(320,Math.round(vv?.width||window.innerWidth||document.documentElement.clientWidth||320));
+  const h=Math.max(320,Math.round(vv?.height||window.innerHeight||document.documentElement.clientHeight||320));
+  const left=Math.round(vv?.offsetLeft||0),top=Math.round(vv?.offsetTop||0);
+  shell.style.setProperty('--focus-vw',`${w}px`);shell.style.setProperty('--focus-vh',`${h}px`);
+  shell.style.width=`${w}px`;shell.style.height=`${h}px`;shell.style.left=`${left}px`;shell.style.top=`${top}px`;
+}
+function createFullscreenShell(){
+  if(fullscreenShell?.isConnected)return fullscreenShell;
+  const shell=document.createElement('div');shell.id='drawFullscreenShell';shell.className='draw-fullscreen-shell focus-pane-draw';shell.setAttribute('role','dialog');shell.setAttribute('aria-modal','true');shell.setAttribute('aria-label','全螢幕畫板');
+  shell.innerHTML='<div id="drawFullscreenTop" class="draw-fullscreen-top"></div><div id="drawFullscreenMain" class="draw-fullscreen-main"></div><div id="drawFullscreenBottom" class="draw-fullscreen-bottom"></div>';
+  document.body.appendChild(shell);fullscreenShell=shell;updateFullscreenViewportBox();return shell;
+}
+function mountFullscreenWorkspace(){
+  const shell=createFullscreenShell(),top=$('#drawFullscreenTop'),main=$('#drawFullscreenMain'),bottom=$('#drawFullscreenBottom');
+  const bar=$('#focusLearningBar'),panel=$('#focusLearningPanel'),stage=$('.workspace-card .canvas-stage'),toolbar=$('.workspace-card .toolbar');
+  if(!top||!main||!bottom||!bar||!panel||!stage||!toolbar)throw new Error('fullscreen workspace nodes missing');
+  rememberFullscreenNode(bar,'bar');rememberFullscreenNode(panel,'panel');rememberFullscreenNode(stage,'stage');rememberFullscreenNode(toolbar,'toolbar');
+  top.appendChild(bar);main.appendChild(stage);main.appendChild(panel);bottom.appendChild(toolbar);
+  bar.hidden=false;panel.hidden=true;moveLearningPanelsToFocus();
+}
+function unmountFullscreenWorkspace(){
+  const bar=$('#focusLearningBar'),panel=$('#focusLearningPanel'),stage=$('#drawFullscreenShell .canvas-stage'),toolbar=$('#drawFullscreenShell .toolbar');
+  restoreLearningPanels();
+  if(bar)bar.hidden=true;if(panel)panel.hidden=true;
+  restoreFullscreenNode(bar,'bar');restoreFullscreenNode(panel,'panel');restoreFullscreenNode(stage,'stage');restoreFullscreenNode(toolbar,'toolbar');
+  fullscreenAnchors.forEach(a=>a?.remove());fullscreenAnchors.clear();
+  fullscreenShell?.remove();fullscreenShell=null;
 }
 function clearFullscreenCanvasBox(){
   const wrap=$('#canvasWrap');if(!wrap)return;
-  wrap.style.removeProperty('width');wrap.style.removeProperty('height');
+  wrap.style.removeProperty('width');wrap.style.removeProperty('height');wrap.style.removeProperty('max-width');wrap.style.removeProperty('max-height');
 }
 function fitFullscreenCanvasBox(){
   if(!drawFocusMode||focusLearningPane!=='draw')return false;
-  const stage=$('.workspace-card.draw-focus-fullscreen .canvas-stage'),wrap=$('#canvasWrap');if(!stage||!wrap)return false;
-  const r=stage.getBoundingClientRect(),cs=getComputedStyle(stage);
-  let aw=r.width-(parseFloat(cs.paddingLeft)||0)-(parseFloat(cs.paddingRight)||0)-4;
-  let ah=r.height-(parseFloat(cs.paddingTop)||0)-(parseFloat(cs.paddingBottom)||0)-4;
-  if(aw<160||ah<120){
-    const vv=window.visualViewport;aw=Math.max(160,(vv?.width||innerWidth)-20);ah=Math.max(120,(vv?.height||innerHeight)-190);
-  }
+  const shell=$('#drawFullscreenShell'),host=$('#drawFullscreenMain'),stage=$('#drawFullscreenShell .canvas-stage'),wrap=$('#canvasWrap');
+  if(!shell||!host||!stage||!wrap)return false;
+  updateFullscreenViewportBox();
+  const r=host.getBoundingClientRect(),cs=getComputedStyle(host);
+  let aw=r.width-(parseFloat(cs.paddingLeft)||0)-(parseFloat(cs.paddingRight)||0)-12;
+  let ah=r.height-(parseFloat(cs.paddingTop)||0)-(parseFloat(cs.paddingBottom)||0)-12;
+  aw=Math.max(280,aw);ah=Math.max(210,ah);
   let w=Math.min(aw,ah*4/3),h=w*3/4;if(h>ah){h=ah;w=h*4/3}
-  w=Math.max(160,Math.floor(w));h=Math.max(120,Math.floor(h));
+  w=Math.max(280,Math.floor(w));h=Math.max(210,Math.floor(h));
   wrap.style.setProperty('width',`${w}px`,'important');wrap.style.setProperty('height',`${h}px`,'important');
+  wrap.style.setProperty('max-width','100%','important');wrap.style.setProperty('max-height','100%','important');
   return true;
 }
 async function setFocusLearningPane(pane='draw'){
   if(!['draw','practice','speech'].includes(pane))pane='draw';
   focusLearningPane=pane;
-  const card=$('.workspace-card'),panel=$('#focusLearningPanel'),pron=focusPronunciationPanel(),practice=focusPracticePanel();
-  card?.classList.toggle('focus-pane-practice',pane==='practice');
-  card?.classList.toggle('focus-pane-speech',pane==='speech');
-  card?.classList.toggle('focus-pane-draw',pane==='draw');
+  const shell=$('#drawFullscreenShell'),panel=$('#focusLearningPanel'),pron=focusPronunciationPanel(),practice=focusPracticePanel();
+  shell?.classList.toggle('focus-pane-practice',pane==='practice');shell?.classList.toggle('focus-pane-speech',pane==='speech');shell?.classList.toggle('focus-pane-draw',pane==='draw');
   $$('.focus-mode-btn').forEach(b=>{const active=b.dataset.focusPane===pane;b.classList.toggle('active',active);b.setAttribute('aria-selected',String(active))});
-  if(panel)panel.hidden=pane==='draw';
-  if(pron)pron.hidden=pane!=='speech';
-  if(practice)practice.hidden=pane!=='practice';
+  if(panel)panel.hidden=pane==='draw';if(pron)pron.hidden=pane!=='speech';if(practice)practice.hidden=pane!=='practice';
   updateFocusCurrentLabel();
   await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
   if(pane==='practice'){await resizePracticeCanvases(true);drawPracticeGuide()}
-  else if(pane==='draw'){fitFullscreenCanvasBox();await new Promise(r=>requestAnimationFrame(r));await resizeMainCanvases(true);showEraserCursorPreview()}
+  else if(pane==='draw'){fitFullscreenCanvasBox();await new Promise(r=>requestAnimationFrame(r));state.mainCanvasSize=null;await resizeMainCanvases(true);showEraserCursorPreview()}
 }
 async function setDrawFullscreen(on){
-  const card=$('.workspace-card'),btn=$('#drawFullscreenBtn');if(!card)return;
-  on=!!on;if(on===drawFocusMode)return;resetActivePointerSession();
-  const bar=$('#focusLearningBar'),panel=$('#focusLearningPanel');
+  const btn=$('#drawFullscreenBtn');on=!!on;if(on===drawFocusMode)return;resetActivePointerSession();
   try{
     if(on){
-      focusPaletteRestore=state.paletteCollapsed;setPaletteCollapsed(true,false);drawFocusMode=true;
-      document.body.classList.add('draw-focus-mode');card.classList.add('draw-focus-fullscreen','focus-pane-draw');mountDrawCardToViewport(card);
-      moveLearningPanelsToFocus();if(bar)bar.hidden=false;if(panel)panel.hidden=true;updateFocusCurrentLabel();
-      if(btn){btn.setAttribute('aria-pressed','true');btn.textContent='✕ 離開全螢幕'}
-      state.mainCanvasSize=null;
-      await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
-      fitFullscreenCanvasBox();await setFocusLearningPane('draw');
+      focusPaletteRestore=state.paletteCollapsed;setPaletteCollapsed(true,false);drawFocusMode=true;focusLearningPane='draw';document.body.classList.add('draw-focus-mode');
+      mountFullscreenWorkspace();updateFocusCurrentLabel();if(btn){btn.setAttribute('aria-pressed','true');btn.textContent='✕ 離開全螢幕'}
+      await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));fitFullscreenCanvasBox();state.mainCanvasSize=null;await resizeMainCanvases(true);showEraserCursorPreview();
     }else{
-      drawFocusMode=false;clearFullscreenCanvasBox();
-      document.body.classList.remove('draw-focus-mode');card.classList.remove('draw-focus-fullscreen','focus-pane-practice','focus-pane-speech','focus-pane-draw');
-      if(bar)bar.hidden=true;if(panel)panel.hidden=true;restoreLearningPanels();focusLearningPane='draw';restoreDrawCardFromViewport(card);setPaletteCollapsed(focusPaletteRestore,false);
+      drawFocusMode=false;clearFullscreenCanvasBox();document.body.classList.remove('draw-focus-mode');focusLearningPane='draw';unmountFullscreenWorkspace();setPaletteCollapsed(focusPaletteRestore,false);
       if(btn){btn.setAttribute('aria-pressed','false');btn.textContent='⛶ 全螢幕畫板'}
-      state.mainCanvasSize=null;
-      await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
-      await resizeMainCanvases(true);await resizePracticeCanvases(true);drawPracticeGuide();showEraserCursorPreview();
+      state.mainCanvasSize=null;await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));await resizeMainCanvases(true);await resizePracticeCanvases(true);drawPracticeGuide();showEraserCursorPreview();
     }
   }catch(err){
     console.error('fullscreen drawing mode failed',err);toast('全螢幕畫板載入失敗，請再試一次');
-    if(on){drawFocusMode=false;clearFullscreenCanvasBox();document.body.classList.remove('draw-focus-mode');card.classList.remove('draw-focus-fullscreen','focus-pane-practice','focus-pane-speech','focus-pane-draw');restoreDrawCardFromViewport(card);if(bar)bar.hidden=true;if(panel)panel.hidden=true;restoreLearningPanels();setPaletteCollapsed(focusPaletteRestore,false);if(btn){btn.setAttribute('aria-pressed','false');btn.textContent='⛶ 全螢幕畫板'}}
+    drawFocusMode=false;clearFullscreenCanvasBox();document.body.classList.remove('draw-focus-mode');try{unmountFullscreenWorkspace()}catch{};setPaletteCollapsed(focusPaletteRestore,false);if(btn){btn.setAttribute('aria-pressed','false');btn.textContent='⛶ 全螢幕畫板'}
   }
 }
 function exitDrawFullscreen(){if(drawFocusMode)setDrawFullscreen(false)}
 function bindDrawFullscreenButton(){
-  const btn=$('#drawFullscreenBtn');if(!btn)return;let lastPointerToggle=0;
-  btn.style.touchAction='manipulation';
-  btn.addEventListener('pointerup',e=>{if(e.pointerType==='mouse')return;e.preventDefault();lastPointerToggle=Date.now();setDrawFullscreen(!drawFocusMode)});
-  btn.addEventListener('click',e=>{if(Date.now()-lastPointerToggle<650)return;e.preventDefault();setDrawFullscreen(!drawFocusMode)});
+  const btn=$('#drawFullscreenBtn');if(!btn)return;btn.style.touchAction='manipulation';btn.addEventListener('click',e=>{e.preventDefault();setDrawFullscreen(!drawFocusMode)});
+  const exit=$('#focusExitBtn');if(exit){exit.style.touchAction='manipulation';exit.addEventListener('click',e=>{e.preventDefault();exitDrawFullscreen()})}
 }
 function renderPalette(){
   $('#colorRow').innerHTML=COLORS.map(c=>`<button class="color-chip ${c===state.color?'active':''}" data-color="${c}" style="background:${c}" aria-label="選擇顏色 ${c}"></button>`).join('');
