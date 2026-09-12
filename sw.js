@@ -1,4 +1,4 @@
-const CACHE_NAME = 'kids-drawing-v1-7-36-floating-brush-large-practice-20260912-01';
+const CACHE_NAME = 'kids-drawing-v1-7-37-fullscreen-runtime-regression-20260912-01';
 
 const CORE_ASSETS = [
   './',

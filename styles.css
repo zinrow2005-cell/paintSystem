@@ -1010,7 +1010,7 @@ body.draw-focus-mode>#drawFullscreenShell{pointer-events:auto!important}
 /* V1.7.35｜真正全螢幕畫布：Canvas 佔滿 viewport，控制列全部浮在畫布上方 */
 body.draw-focus-mode{overflow:hidden!important;background:#fffaf1!important}
 .draw-fullscreen-shell{
-  position:fixed!important;inset:auto!important;z-index:2147482000!important;
+  position:fixed!important;inset:0!important;z-index:2147482000!important;
   margin:0!important;padding:0!important;display:block!important;overflow:hidden!important;
   background:#fffaf1!important;isolation:isolate!important;touch-action:none!important;
 }
