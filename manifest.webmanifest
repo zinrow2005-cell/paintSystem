@@ -1,0 +1,27 @@
+{
+  "id": "./",
+  "name": "小小畫家學習樂園 V1.7.30",
+  "short_name": "小小畫家 V1.7.30",
+  "description": "幼兒繪圖學習 PWA；V1.7.30 強化 iPad、Apple Pencil、多點觸控、旋轉畫面與作品分享穩定性。",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#fffaf0",
+  "theme_color": "#fff5da",
+  "orientation": "any",
+  "lang": "zh-TW",
+  "icons": [
+    {
+      "src": "./icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

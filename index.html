@@ -1,0 +1,403 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no" />
+  <meta name="theme-color" content="#fff5da" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <title>小小畫家學習樂園 V1.7.30｜iPad 操作穩定性修正版</title>
+  <link rel="manifest" href="./manifest.webmanifest" />
+  <link rel="icon" href="./icons/icon-192.png" />
+  <link rel="apple-touch-icon" href="./icons/icon-192.png" />
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <button class="icon-btn" id="homeBtn" aria-label="首頁">🏠</button>
+    <div class="brand">
+      <h1>🎨 小小畫家學習樂園</h1>
+      <div class="version">V1.7.30｜iPad 操作穩定性修正・畫具／選色盤優化</div>
+    </div>
+    <div class="top-actions">
+      <button class="star-badge" id="starBadge" aria-label="獎勵星星">⭐ <b id="starCount">0</b></button>
+      <button class="icon-btn" id="galleryBtn" aria-label="我的作品">🖼️</button>
+      <button class="icon-btn parent-entry" id="parentBtn" aria-label="家長模式，長按開啟">🔒</button>
+    </div>
+  </header>
+
+  <main>
+    <section id="homeView" class="view active home-view">
+      <div class="hero home-hero">
+        <div class="hero-copy">
+          <div class="eyebrow paint-tag">今天想畫什麼呢？</div>
+          <h2><span>畫一張、學一個字、</span><span>得到一顆星 ⭐</span></h2>
+          <p>從 LV1 大輪廓開始，一路挑戰到 LV10 完整場景，支援手指與 Apple Pencil，讓孩子在畫畫中快樂學習。</p>
+          <div class="hero-pill-row">
+            <span class="hero-pill">🎨 彩色 / 線稿雙模式</span>
+            <span class="hero-pill">✏️ 畫一張就學一個字</span>
+            <span class="hero-pill">⭐ 完成即可收集星星</span>
+          </div>
+        </div>
+        <div class="hero-visual">
+          <img src="./assets/ui/home-hero-art.png" alt="小朋友開心畫畫的首頁插圖" />
+        </div>
+      </div>
+
+
+      <div class="sample-banner home-feature-grid">
+        <div class="sample-banner-text feature-card info-card">
+          <div class="feature-card-media"><img src="./assets/ui/home-feature-card.png" alt="教材卡片示意" /></div>
+          <div class="feature-card-copy">
+            <div class="eyebrow">統一教材圖案風格樣板</div>
+            <strong>200 張教材 × 彩色／黑白雙模式</strong>
+            <small>每一張教材都可切換彩色底圖或黑白線稿；底圖透明度預設 15%，進入畫板後可自行調整。</small>
+          </div>
+        </div>
+        <div class="sample-banner-actions feature-action-wrap">
+          <button id="openStyleBoardBtn" class="primary-btn feature-action warm">🖼️ <span>看整張樣板</span></button>
+          <button id="homeRandomBtn" class="primary-btn random-btn feature-action cool">🎲 <span>隨機出題</span></button>
+        </div>
+        <div class="guide-style-switch home-guide-style feature-card mode-card">
+          <div class="guide-style-label">圖案模式</div>
+          <div class="segmented guide-style-tabs compact">
+            <button class="seg guide-style-btn" data-guide-style="outline">⚪ 黑白線稿</button>
+            <button class="seg guide-style-btn" data-guide-style="color">🌈 彩色底圖</button>
+          </div>
+          <small id="guideStyleHintHome">目前預設是彩色底圖，方便參考顏色；進入畫板後也能再切換成黑白線稿。</small>
+        </div>
+      </div>
+
+      <div class="section-title paint-title">選擇難度</div>
+      <div id="levelGrid" class="level-grid"></div>
+
+      <div class="section-title paint-title">主題分類</div>
+      <div id="categoryGrid" class="category-grid"></div>
+      <div id="categoryShowcase" class="category-showcase"></div>
+
+      <div class="library-head">
+        <div>
+          <div class="section-title paint-title">圖案庫</div>
+          <div id="filterHint" class="muted">全部圖案</div>
+        </div>
+        <button id="resetFilterBtn" class="soft-btn">顯示全部</button>
+      </div>
+      <div id="templateGrid" class="template-grid"></div>
+    </section>
+
+
+    <section id="categoryView" class="view category-view">
+      <div class="category-page-hero category-art-hero">
+        <button id="backFromCategoryBtn" class="soft-btn category-back">← 全部主題</button>
+        <div class="category-page-main">
+          <div id="categoryPageEmoji" class="category-page-emoji">🐯</div>
+          <div class="category-page-copy">
+            <div class="eyebrow paint-tag category-tag">主題學習館</div>
+            <h2 id="categoryPageTitle">陸地動物</h2>
+            <p id="categoryPageDescription">選一張喜歡的圖案開始畫畫吧！</p>
+            <div class="category-page-stats">
+              <span><b id="categoryPageCount">0</b> 張教材</span>
+              <span><b id="categoryPageDone">0</b> 張完成</span>
+            </div>
+          </div>
+          <div class="category-progress-card" aria-label="主題學習進度">
+            <div class="category-progress-ring" id="categoryProgressRing"><span id="categoryProgressPercent">0%</span></div>
+            <div>
+              <strong>我的完成度</strong>
+              <small id="categoryProgressLabel">從第一張開始挑戰吧！</small>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="category-page-toolbar">
+        <div>
+          <div class="section-title category-subtitle">選擇難度</div>
+          <div id="categoryLevelChips" class="category-level-chips"></div>
+        </div>
+        <div class="category-toolbar-actions">
+          <button id="categoryRandomBtn" class="primary-btn random-btn">🎲 隨機一張</button>
+          <button id="categoryClearLevelBtn" class="soft-btn">顯示全部難度</button>
+        </div>
+      </div>
+
+      <div id="categoryProgressText" class="category-progress-text"></div>
+      <div id="categoryTemplateGrid" class="template-grid category-template-grid"></div>
+    </section>
+
+    <section id="drawView" class="view">
+      <div class="draw-hero-banner">
+        <div class="draw-hero-copy">
+          <div class="eyebrow paint-tag draw-tag">開始創作吧！</div>
+          <h2>今天就用喜歡的顏色，<br>畫出自己的小作品</h2>
+          <p>可以先參考彩色底圖，也可以切換成黑白線稿；完成後還能收藏作品與練習寫字。</p>
+        </div>
+        <div class="draw-hero-stickers">
+          <span>🎨 自由上色</span>
+          <span>🧩 多圖層創作</span>
+          <span>✍️ 文字塗寫</span>
+          <span>⭐ 收藏成就</span>
+        </div>
+      </div>
+      <div class="draw-layout">
+        <div class="workspace-card">
+          <div class="workspace-head">
+            <div>
+              <div id="drawLevel" class="pill">LV1</div>
+              <h2 id="drawTitle">蘋果 Apple</h2>
+            </div>
+            <div class="workspace-actions">
+              <button id="toggleGuideBtn" class="soft-btn">👁️ 底圖 15%</button>
+              <button id="clearBtn" class="danger-soft">清除此層</button>
+            </div>
+          </div>
+
+          <div class="guide-style-panel" aria-label="圖案樣式與底圖透明度">
+            <div class="guide-style-copy">
+              <div class="guide-style-title">圖案樣式選擇</div>
+              <div class="guide-style-note" id="guideStyleNote">可切換成彩色底圖或黑白線稿，底圖透明度可自行調整。</div>
+            </div>
+            <div class="guide-controls">
+              <div class="segmented guide-style-tabs">
+                <button class="seg guide-style-btn" data-guide-style="outline">⚪ 黑白線稿</button>
+                <button class="seg guide-style-btn" data-guide-style="color">🌈 彩色底圖</button>
+              </div>
+              <div class="guide-opacity-control">
+                <div class="guide-opacity-head"><span>👁️ 底圖透明度</span><output id="guideOpacityValue" for="guideOpacityRange">15%</output></div>
+                <input id="guideOpacityRange" type="range" min="0" max="100" step="5" value="15" aria-label="底圖透明度" />
+                <div class="guide-opacity-scale"><span>隱藏 0%</span><span>預設 15%</span><span>清楚 100%</span></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="layer-panel layer-manager" aria-label="繪圖圖層管理">
+            <div class="layer-manager-head">
+              <div>
+                <span class="layer-label">圖層</span>
+                <small class="layer-manager-hint">點縮圖切換圖層；可新增圖層，最多 8 層。</small>
+              </div>
+              <button id="addLayerBtn" class="layer-add-btn" type="button">＋ 新增圖層</button>
+            </div>
+            <div id="layerCards" class="layer-card-strip" aria-label="圖層縮圖列表"></div>
+            <div class="layer-selected-bar" aria-label="目前圖層操作">
+              <strong id="activeLayerName">✏️ 描線</strong>
+              <div class="layer-selected-actions">
+                <button id="layerEyeBtn" class="layer-mini-btn" type="button" title="顯示或隱藏目前圖層">👁️ 顯示</button>
+                <button id="layerLockBtn" class="layer-mini-btn" type="button" title="鎖定或解鎖目前圖層">🔓 未鎖定</button>
+                <button id="layerRenameBtn" class="layer-mini-btn" type="button" title="重新命名自訂圖層">✏️ 名稱</button>
+                <button id="layerMoveDownBtn" class="layer-mini-btn" type="button" title="移到下一層（更下方）">↓ 下層</button>
+                <button id="layerMoveUpBtn" class="layer-mini-btn" type="button" title="移到上一層（更上方）">↑ 上層</button>
+                <button id="layerDeleteBtn" class="layer-mini-btn danger" type="button" title="刪除自訂圖層">🗑️ 刪除</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="canvas-stage">
+            <aside id="paletteDock" class="palette-dock" aria-label="畫具與調色盤">
+              <button id="paletteToggleBtn" class="palette-toggle" aria-label="收合畫具與調色盤" aria-expanded="true">🎨<span>收合</span></button>
+              <div id="paletteBody" class="palette-body">
+                <div class="palette-section-title">畫具</div>
+                <div class="tool-group expanded-tools palette-tools" id="toolGroup">
+                  <button class="tool-btn active" data-tool="pencil">✏️<span>鉛筆</span></button>
+                  <button class="tool-btn" data-tool="crayon">🖍️<span>蠟筆</span></button>
+                  <button class="tool-btn" data-tool="brush">🖌️<span>畫筆</span></button>
+                  <button class="tool-btn" data-tool="watercolor">💧<span>水彩筆</span></button>
+                  <button class="tool-btn" data-tool="marker">🖊️<span>色筆</span></button>
+                  <button class="tool-btn" data-tool="airbrush">🌫️<span>噴筆</span></button>
+                  <button class="tool-btn palette-eraser" data-tool="eraser">🧽<span>橡皮擦</span></button>
+                </div>
+                <div class="palette-divider"></div>
+                <div class="palette-section-title">調色盤</div>
+                <div id="currentColorSwatch" class="current-color-swatch" aria-label="目前顏色"></div>
+                <div id="colorRow" class="color-row palette-colors"></div>
+                <button id="openColorWheelBtn" class="open-color-wheel-btn" type="button">🌈 更多顏色</button>
+              </div>
+            </aside>
+            <div id="canvasWrap" class="canvas-wrap">
+              <canvas id="guideCanvas"></canvas>
+              <canvas id="drawCanvas1" class="draw-layer active-layer"></canvas>
+              <canvas id="drawCanvas2" class="draw-layer"></canvas>
+              <canvas id="drawCanvas3" class="draw-layer"></canvas>
+              <div id="eraserCursor" class="eraser-cursor" aria-hidden="true"><span>擦拭範圍</span></div>
+            </div>
+          </div>
+
+          <div class="quick-template-nav" aria-label="快速切換教材">
+            <button id="prevTemplateBtn" class="soft-btn">← 上一張</button>
+            <div class="quick-template-status">
+              <span id="templatePositionText">1 / 200</span>
+              <small id="templatePoolText">全部教材</small>
+            </div>
+            <button id="randomTemplateBtn" class="primary-btn random-btn">🎲 隨機</button>
+            <button id="nextTemplateBtn" class="soft-btn">下一張 →</button>
+          </div>
+
+          <div class="toolbar" aria-label="繪圖工具">
+            <div class="brush-realism-note">畫具已移到左側調色盤。可選擇粗細與透明度，再用喜歡的顏色自由創作。</div>
+            <div class="brush-control-panel">
+              <div class="size-row brush-size-row">
+                <span>粗細</span>
+                <button class="size-btn" data-size="3" aria-label="極細">•</button>
+                <button class="size-btn" data-size="5" aria-label="細">●</button>
+                <button class="size-btn active" data-size="8" aria-label="中細">●</button>
+                <button class="size-btn" data-size="14" aria-label="中">●</button>
+                <button class="size-btn" data-size="22" aria-label="粗">●</button>
+                <button class="size-btn" data-size="34" aria-label="特粗">●</button>
+              </div>
+              <label class="opacity-control" for="brushOpacityInput">
+                <span>透明度 <b id="brushOpacityValue">100%</b></span>
+                <input id="brushOpacityInput" type="range" min="15" max="100" value="100" step="5" />
+              </label>
+              <span class="pen-hint" id="penHint">✏️ 鉛筆：輕壓細淡、重壓較深，帶紙面顆粒</span>
+            </div>
+
+
+            <div class="action-row">
+              <button id="undoBtn" class="soft-btn">↶ 上一步</button>
+              <button id="redoBtn" class="soft-btn">↷ 下一步</button>
+              <button id="saveBtn" class="primary-btn">⭐ 完成並收藏</button>
+            </div>
+          </div>
+        </div>
+
+        <aside class="learn-card">
+          <div class="learn-emoji" id="learnEmoji">🍎</div>
+          <div class="word-en" id="wordEn">APPLE</div>
+          <div class="phonetic" id="wordKK">[ˈæpəl]</div>
+          <div class="speak-row"><button id="speakEnBtn" class="speak-btn">🔊 English</button><button id="speakEnSlowBtn" class="speak-btn secondary">🐢 慢速</button></div>
+
+          <div class="divider"></div>
+
+          <div class="word-zh" id="wordZh">蘋果</div>
+          <div class="zhuyin" id="wordZhuyin">ㄆㄧㄣˊ ㄍㄨㄛˇ</div>
+          <div class="speak-row"><button id="speakZhBtn" class="speak-btn">🔊 中文</button><button id="speakZhCharBtn" class="speak-btn secondary">👆 逐字</button></div>
+
+
+          <div class="divider"></div>
+          <div id="sampleRefBlock" class="sample-ref-block" hidden>
+            <div class="practice-title">🖼️ 樣板參考</div>
+            <img id="sampleRefImg" class="sample-ref-img" alt="樣板參考圖">
+            <div class="sample-ref-actions">
+              <button id="openCurrentSampleBtn" class="soft-btn full">看這張樣板</button>
+              <button id="openStyleBoardFromDrawBtn" class="soft-btn full">看整張樣板</button>
+            </div>
+          </div>
+
+          <div class="practice-title">✍️ 文字塗寫練習</div>
+          <div class="practice-note">切換英文／中文／注音時會清空上一個練習畫面；英文單字只顯示一次。</div>
+          <div class="segmented practice-tabs">
+            <button class="seg active" data-practice="en">ABC 英文</button>
+            <button class="seg" data-practice="zh">中文字</button>
+            <button class="seg" data-practice="bpmf">ㄅㄆㄇ 注音</button>
+          </div>
+          <div class="practice-wrap">
+            <canvas id="practiceGuideCanvas"></canvas>
+            <canvas id="practiceCanvas"></canvas>
+          </div>
+          <div class="practice-actions">
+            <button id="practiceClearBtn" class="soft-btn">清除練習</button>
+            <button id="practiceGuideBtn" class="soft-btn">描字 → 仿寫</button>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <section id="galleryView" class="view gallery-view">
+      <div class="gallery-hero">
+        <div class="gallery-hero-copy">
+          <div class="eyebrow paint-tag gallery-tag">我的作品小藝廊</div>
+          <h2>每完成一張，就留下今天的成長 🌟</h2>
+          <p>把畫過的作品收藏起來，慢慢看見自己的顏色、線條與想像力越來越豐富。</p>
+          <div class="gallery-summary" id="gallerySummary"></div>
+        </div>
+        <div class="gallery-hero-art" aria-hidden="true">
+          <span>🖍️</span><span>🎨</span><span>🖼️</span><span>⭐</span>
+        </div>
+        <button id="backFromGalleryBtn" class="soft-btn gallery-back">← 回圖案庫</button>
+      </div>
+      <div class="gallery-stat-grid" aria-label="作品統計">
+        <div class="gallery-stat-card"><span class="gallery-stat-icon">🖼️</span><div><b id="galleryWorksCount">0</b><small>收藏作品</small></div></div>
+        <div class="gallery-stat-card"><span class="gallery-stat-icon">🌱</span><div><b id="galleryLevelsCount">0</b><small>挑戰等級</small></div></div>
+        <div class="gallery-stat-card"><span class="gallery-stat-icon">⭐</span><div><b id="galleryStarsCount">0</b><small>累積星星</small></div></div>
+      </div>
+      <div class="gallery-section-head">
+        <div>
+          <div class="section-title paint-title">作品收藏牆</div>
+          <div class="muted">每一張作品都是孩子自己的創作紀錄。</div>
+        </div>
+      </div>
+      <div id="galleryGrid" class="gallery-grid"></div>
+      <div id="emptyGallery" class="empty-state gallery-empty">
+        <div class="gallery-empty-art">🎨🖍️✨</div>
+        <strong>還沒有收藏作品</strong>
+        <span>先挑一張喜歡的教材完成第一幅畫吧！</span>
+      </div>
+    </section>
+  </main>
+
+  <div id="rewardOverlay" class="reward-overlay" aria-hidden="true">
+    <div class="reward-card"><div class="reward-star">⭐</div><strong>完成一張！</strong><span id="rewardText">得到 1 顆星</span></div>
+  </div>
+
+  <div id="parentModal" class="modal" aria-hidden="true">
+    <div class="modal-card parent-card">
+      <div class="modal-head">
+        <div><div class="eyebrow">家長模式</div><h2>學習與操作設定</h2></div>
+        <button id="closeParentBtn" class="icon-btn small">✕</button>
+      </div>
+      <div class="parent-stats">
+        <div><b id="parentStars">0</b><span>累積星星</span></div>
+        <div><b id="parentWorks">0</b><span>收藏作品</span></div>
+        <div><b id="parentLevels">0</b><span>挑戰過等級</span></div>
+      </div>
+      <label class="setting-row"><span><b>防手掌誤觸</b><small>使用 Apple Pencil 後，短時間忽略手掌或手指誤碰。</small></span><input id="palmRejectToggle" type="checkbox" checked /></label>
+      <label class="setting-row"><span><b>Apple Pencil 壓力筆觸</b><small>依壓力與畫筆移動速度調整粗細，讓線條更自然。</small></span><input id="pressureToggle" type="checkbox" checked /></label>
+      <label class="setting-row setting-select-row"><span><b>Apple Pencil 筆壓感度</b><small>依孩子下筆力道選擇。柔和＝輕壓就有明顯變化；偏硬＝需要較用力。</small></span><select id="pressureCurveSelect"><option value="soft">柔和</option><option value="normal" selected>標準</option><option value="firm">偏硬</option></select></label>
+      <label class="setting-row"><span><b>完成作品播放鼓勵音</b><small>收藏作品後播放簡短中文鼓勵。</small></span><input id="rewardSoundToggle" type="checkbox" checked /></label>
+      <label class="setting-row"><span><b>完成作品動畫</b><small>收藏作品時顯示星星完成動畫。</small></span><input id="completionFxToggle" type="checkbox" checked /></label>
+      <div class="parent-note">🔒 長按右上角鎖頭約 1.2 秒可進入家長模式。已保留與實際操作有關的設定，並移除教學步驟相關干擾。</div>
+      <button id="closeParentBottomBtn" class="primary-btn full">完成設定</button>
+    </div>
+  </div>
+
+
+  <div id="sampleModal" class="modal" aria-hidden="true">
+    <div class="modal-card sample-modal-card">
+      <div class="modal-head">
+        <div><div class="eyebrow">教材樣板圖</div><h2 id="sampleModalTitle">統一教材風格參考</h2></div>
+        <button id="closeSampleBtn" class="icon-btn small">✕</button>
+      </div>
+      <img id="sampleModalImg" class="sample-modal-img" alt="教材樣板大圖">
+      <div class="parent-note">此圖為正式教材樣板；繪圖畫布的底圖透明度預設 15%，並可由使用者自行調整。</div>
+    </div>
+  </div>
+
+  <div id="colorWheelPopover" class="color-wheel-overlay" hidden aria-hidden="true">
+    <div class="color-wheel-card" role="dialog" aria-modal="true" aria-labelledby="colorWheelTitle">
+      <div class="color-wheel-head">
+        <div><div class="eyebrow">更多顏色</div><h2 id="colorWheelTitle">圓形顏色挑選盤</h2></div>
+        <button id="closeColorWheelBtn" class="icon-btn small" type="button" aria-label="關閉顏色挑選盤">✕</button>
+      </div>
+      <div class="color-wheel-main">
+        <div id="colorWheelShell" class="color-wheel-shell">
+          <canvas id="colorWheelCanvas" width="280" height="280" aria-label="圓形顏色挑選盤"></canvas>
+          <div id="colorWheelPointer" class="color-wheel-pointer" aria-hidden="true"></div>
+        </div>
+        <div class="color-wheel-side">
+          <div class="color-wheel-preview-row"><span id="colorWheelPreview" class="color-wheel-preview"></span><b id="colorWheelHex">#222222</b></div>
+          <label class="color-brightness-control" for="colorBrightnessRange">
+            <span>明暗 <b id="colorBrightnessValue">100%</b></span>
+            <input id="colorBrightnessRange" type="range" min="20" max="100" step="1" value="100" />
+          </label>
+          <div class="color-wheel-help">在圓盤上拖曳選顏色，往中心顏色會變淡；下方滑桿可調整明暗。</div>
+          <button id="confirmColorWheelBtn" class="primary-btn full" type="button">使用這個顏色</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast" role="status"></div>
+  <script src="./lineart.js"></script>
+  <script src="./app.js"></script>
+</body>
+</html>
