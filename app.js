@@ -1082,47 +1082,68 @@ function drawPracticeGuide(){
   const r=practiceGuide.getBoundingClientRect();
   if(r.width<2||r.height<2)return;
   clearCanvasPixels(practiceGuide,pgctx);pgctx.save();pgctx.lineWidth=1;pgctx.textAlign='center';pgctx.textBaseline='middle';
-  const isFull=!!(drawFocusMode&&focusLearningPane==='practice'&&$('#drawFullscreenShell')?.contains(practiceGuide));
+  const isFull=!!(drawFocusMode&&focusLearningPane==='practice');
   const alpha=state.practiceStage===0?.23:state.practiceStage===1?.10:0;
   if(state.practiceMode==='en'){
     pgctx.strokeStyle='#bfc8d1';
-    const lineYs=isFull?[r.height*.20,r.height*.39,r.height*.61,r.height*.80]:[r.height*.18,r.height*.38,r.height*.62,r.height*.82];
-    lineYs.forEach((y,i)=>{pgctx.setLineDash(i===1||i===2?[7,8]:[]);pgctx.beginPath();pgctx.moveTo(isFull?r.width*.035:8,y);pgctx.lineTo(isFull?r.width*.965:r.width-8,y);pgctx.stroke()});pgctx.setLineDash([]);
-    const txt=state.current.en.toLowerCase(),maxW=r.width*(isFull?.88:.90);
-    const maxSize=isFull?Math.min(r.height*.42,Math.max(92,r.width*.25)):Math.min(66,r.height*.39);
-    const minSize=isFull?42:25;
-    const fitted=fitSpacedText(pgctx,txt,maxW,maxSize,minSize,isFull?.18:.14,'ui-rounded, sans-serif');
-    pgctx.fillStyle=`rgba(60,70,80,${alpha})`;if(alpha)drawCenteredSpacedText(pgctx,txt,r.width*.5,r.height*.5,fitted.tracking);
+    const lineYs=isFull?[r.height*.19,r.height*.37,r.height*.63,r.height*.81]:[r.height*.18,r.height*.38,r.height*.62,r.height*.82];
+    lineYs.forEach((y,i)=>{pgctx.setLineDash(i===1||i===2?[7,8]:[]);pgctx.beginPath();pgctx.moveTo(isFull?r.width*.025:8,y);pgctx.lineTo(isFull?r.width*.975:r.width-8,y);pgctx.stroke()});pgctx.setLineDash([]);
+    const txt=state.current.en.toLowerCase(),maxW=r.width*(isFull?.93:.90);
+    const maxSize=isFull?Math.min(r.height*.58,r.width*.34):Math.min(66,r.height*.39);
+    const minSize=isFull?Math.max(32,Math.min(72,r.width*.09)):25;
+    const fitted=fitSpacedText(pgctx,txt,maxW,maxSize,minSize,isFull?.20:.14,'ui-rounded, "Arial Rounded MT Bold", sans-serif');
+    pgctx.font=`700 ${fitted.fs}px ui-rounded, "Arial Rounded MT Bold", sans-serif`;
+    pgctx.fillStyle=`rgba(60,70,80,${alpha})`;
+    if(alpha)drawCenteredSpacedText(pgctx,txt,r.width*.5,r.height*.5,fitted.tracking);
   }else if(state.practiceMode==='zh'){
     const chars=[...state.current.zh],cols=Math.max(1,chars.length);
-    const gap=isFull?Math.max(14,Math.min(30,r.width*.022)):6;
-    const side=isFull?Math.max(28,r.width*.06):gap;
-    const vert=isFull?Math.max(55,r.height*.14):gap;
-    const availW=r.width-side*2-gap*(cols-1),availH=r.height-vert*2-gap;
-    const cell=Math.max(32,Math.min(availW/cols,availH/2));
-    const gridW=cell*cols+gap*(cols-1),gridH=cell*2+gap,sx=(r.width-gridW)/2,sy=(r.height-gridH)/2;
-    for(let row=0;row<2;row++)for(let i=0;i<cols;i++){
-      const x=sx+i*(cell+gap),y=sy+row*(cell+gap);pgctx.strokeStyle='#cfc7b7';pgctx.strokeRect(x,y,cell,cell);pgctx.save();pgctx.setLineDash([6,7]);pgctx.strokeStyle='#dfd7ca';pgctx.beginPath();pgctx.moveTo(x+cell/2,y);pgctx.lineTo(x+cell/2,y+cell);pgctx.moveTo(x,y+cell/2);pgctx.lineTo(x+cell,y+cell/2);pgctx.moveTo(x,y);pgctx.lineTo(x+cell,y+cell);pgctx.moveTo(x+cell,y);pgctx.lineTo(x,y+cell);pgctx.stroke();pgctx.restore();
-      if((row===0&&state.practiceStage<2)||(row===1&&state.practiceStage===0)){pgctx.font=`700 ${cell*(isFull?.79:.74)}px "PingFang TC","Microsoft JhengHei",sans-serif`;pgctx.fillStyle=row===0?`rgba(70,70,70,${alpha})`:'rgba(70,70,70,.09)';pgctx.fillText(chars[i],x+cell/2,y+cell/2)}
+    if(isFull){
+      const side=Math.max(24,r.width*.035),gap=Math.max(12,Math.min(42,r.width*.018));
+      const availW=r.width-side*2-gap*(cols-1),availH=r.height*.70;
+      const cell=Math.max(24,Math.min(availW/cols,availH));
+      const gridW=cell*cols+gap*(cols-1),sx=(r.width-gridW)/2,sy=(r.height-cell)/2;
+      for(let i=0;i<cols;i++){
+        const x=sx+i*(cell+gap),y=sy;
+        pgctx.strokeStyle='#cfc7b7';pgctx.strokeRect(x,y,cell,cell);pgctx.save();pgctx.setLineDash([8,9]);pgctx.strokeStyle='#dfd7ca';pgctx.beginPath();pgctx.moveTo(x+cell/2,y);pgctx.lineTo(x+cell/2,y+cell);pgctx.moveTo(x,y+cell/2);pgctx.lineTo(x+cell,y+cell/2);pgctx.moveTo(x,y);pgctx.lineTo(x+cell,y+cell);pgctx.moveTo(x+cell,y);pgctx.lineTo(x,y+cell);pgctx.stroke();pgctx.restore();
+        if(state.practiceStage<2){pgctx.font=`700 ${cell*.79}px "PingFang TC","Microsoft JhengHei",sans-serif`;pgctx.fillStyle=`rgba(70,70,70,${alpha})`;pgctx.fillText(chars[i],x+cell/2,y+cell/2)}
+      }
+    }else{
+      const gap=6,side=gap,vert=gap,availW=r.width-side*2-gap*(cols-1),availH=r.height-vert*2-gap;
+      const cell=Math.max(32,Math.min(availW/cols,availH/2));
+      const gridW=cell*cols+gap*(cols-1),gridH=cell*2+gap,sx=(r.width-gridW)/2,sy=(r.height-gridH)/2;
+      for(let row=0;row<2;row++)for(let i=0;i<cols;i++){
+        const x=sx+i*(cell+gap),y=sy+row*(cell+gap);pgctx.strokeStyle='#cfc7b7';pgctx.strokeRect(x,y,cell,cell);pgctx.save();pgctx.setLineDash([6,7]);pgctx.strokeStyle='#dfd7ca';pgctx.beginPath();pgctx.moveTo(x+cell/2,y);pgctx.lineTo(x+cell/2,y+cell);pgctx.moveTo(x,y+cell/2);pgctx.lineTo(x+cell,y+cell/2);pgctx.moveTo(x,y);pgctx.lineTo(x+cell,y+cell);pgctx.moveTo(x+cell,y);pgctx.lineTo(x,y+cell);pgctx.stroke();pgctx.restore();
+        if((row===0&&state.practiceStage<2)||(row===1&&state.practiceStage===0)){pgctx.font=`700 ${cell*.74}px "PingFang TC","Microsoft JhengHei",sans-serif`;pgctx.fillStyle=row===0?`rgba(70,70,70,${alpha})`:'rgba(70,70,70,.09)';pgctx.fillText(chars[i],x+cell/2,y+cell/2)}
+      }
     }
   }else{
     const syllables=state.current.zhuyin.split(/\s+/).filter(Boolean),cols=Math.max(1,syllables.length);
-    const gap=isFull?Math.max(16,Math.min(32,r.width*.024)):Math.max(8,Math.min(14,r.width*.025));
-    const side=isFull?Math.max(28,r.width*.055):gap;
-    const vert=isFull?Math.max(55,r.height*.14):gap;
-    const availW=r.width-side*2-gap*(cols-1),availH=r.height-vert*2-gap;
-    const cellW=isFull?Math.max(70,availW/cols):Math.min(110,(r.width-gap*(cols+1))/cols);
-    const cellH=isFull?Math.max(100,availH/2):(r.height-gap*3)/2;
-    const gridW=cellW*cols+gap*(cols-1),gridH=cellH*2+gap,sx=(r.width-gridW)/2,sy=(r.height-gridH)/2;
-    for(let row=0;row<2;row++)for(let i=0;i<cols;i++){
-      const x=sx+i*(cellW+gap),y=sy+row*(cellH+gap),syllable=syllables[i];pgctx.strokeStyle='#c9c3b9';pgctx.strokeRect(x,y,cellW,cellH);pgctx.save();pgctx.setLineDash([6,7]);pgctx.strokeStyle='#ddd7cc';pgctx.beginPath();pgctx.moveTo(x,y+cellH/2);pgctx.lineTo(x+cellW,y+cellH/2);pgctx.stroke();pgctx.restore();
-      if((row===0&&state.practiceStage<2)||(row===1&&state.practiceStage===0)){
-        const maxFs=isFull?Math.min(cellH*.68,cellW*.82):Math.min(46,cellH*.58);
-        const fitted=fitSpacedText(pgctx,syllable,cellW*(isFull?.88:.82),maxFs,isFull?30:22,isFull?.12:.08,'"PingFang TC","Microsoft JhengHei",sans-serif');
-        pgctx.fillStyle=row===0?`rgba(70,70,70,${alpha})`:'rgba(70,70,70,.09)';drawCenteredSpacedText(pgctx,syllable,x+cellW/2,y+cellH/2,fitted.tracking);
+    if(isFull){
+      const side=Math.max(24,r.width*.035),gap=Math.max(14,Math.min(44,r.width*.02));
+      const availW=r.width-side*2-gap*(cols-1),cellW=Math.max(16,availW/cols),cellH=Math.min(r.height*.70,cellW*1.05);
+      const gridW=cellW*cols+gap*(cols-1),sx=(r.width-gridW)/2,sy=(r.height-cellH)/2;
+      for(let i=0;i<cols;i++){
+        const x=sx+i*(cellW+gap),y=sy,syllable=syllables[i];
+        pgctx.strokeStyle='#c9c3b9';pgctx.strokeRect(x,y,cellW,cellH);pgctx.save();pgctx.setLineDash([8,9]);pgctx.strokeStyle='#ddd7cc';pgctx.beginPath();pgctx.moveTo(x,y+cellH/2);pgctx.lineTo(x+cellW,y+cellH/2);pgctx.stroke();pgctx.restore();
+        if(state.practiceStage<2){
+          const maxFs=Math.min(cellH*.74,cellW*.72);
+          const fitted=fitSpacedText(pgctx,syllable,cellW*.90,maxFs,Math.max(20,Math.min(46,cellW*.28)),.14,'"PingFang TC","Microsoft JhengHei",sans-serif');
+          pgctx.font=`700 ${fitted.fs}px "PingFang TC","Microsoft JhengHei",sans-serif`;pgctx.fillStyle=`rgba(70,70,70,${alpha})`;drawCenteredSpacedText(pgctx,syllable,x+cellW/2,y+cellH/2,fitted.tracking);
+        }
+      }
+    }else{
+      const gap=Math.max(8,Math.min(14,r.width*.025)),cellW=Math.min(110,(r.width-gap*(cols+1))/cols),cellH=(r.height-gap*3)/2;
+      const gridW=cellW*cols+gap*(cols-1),gridH=cellH*2+gap,sx=(r.width-gridW)/2,sy=(r.height-gridH)/2;
+      for(let row=0;row<2;row++)for(let i=0;i<cols;i++){
+        const x=sx+i*(cellW+gap),y=sy+row*(cellH+gap),syllable=syllables[i];pgctx.strokeStyle='#c9c3b9';pgctx.strokeRect(x,y,cellW,cellH);pgctx.save();pgctx.setLineDash([6,7]);pgctx.strokeStyle='#ddd7cc';pgctx.beginPath();pgctx.moveTo(x,y+cellH/2);pgctx.lineTo(x+cellW,y+cellH/2);pgctx.stroke();pgctx.restore();
+        if((row===0&&state.practiceStage<2)||(row===1&&state.practiceStage===0)){
+          const maxFs=Math.min(46,cellH*.58),fitted=fitSpacedText(pgctx,syllable,cellW*.82,maxFs,22,.08,'"PingFang TC","Microsoft JhengHei",sans-serif');
+          pgctx.font=`700 ${fitted.fs}px "PingFang TC","Microsoft JhengHei",sans-serif`;pgctx.fillStyle=row===0?`rgba(70,70,70,${alpha})`:'rgba(70,70,70,.09)';drawCenteredSpacedText(pgctx,syllable,x+cellW/2,y+cellH/2,fitted.tracking);
+        }
       }
     }
-  }pgctx.restore();
+  }
+  pgctx.restore();
 }
 
 function setupPractice(){
@@ -1405,6 +1426,11 @@ function clearFullscreenCanvasBox(){
   const wrap=$('#canvasWrap');if(!wrap)return;
   wrap.style.removeProperty('width');wrap.style.removeProperty('height');wrap.style.removeProperty('max-width');wrap.style.removeProperty('max-height');wrap.style.removeProperty('aspect-ratio');
 }
+function setFullscreenBrushControlsCollapsed(collapsed=true){
+  const shell=$('#drawFullscreenShell'),btn=$('#fullscreenBrushToggle');
+  if(shell)shell.classList.toggle('brush-controls-collapsed',!!collapsed);
+  if(btn){btn.setAttribute('aria-expanded',String(!collapsed));btn.textContent=collapsed?'🖌️ 筆觸':'✕ 收合筆觸'}
+}
 function fitFullscreenCanvasBox(){
   if(!drawFocusMode||focusLearningPane!=='draw')return false;
   const shell=$('#drawFullscreenShell'),host=$('#drawFullscreenMain'),stage=$('#drawFullscreenShell .canvas-stage'),wrap=$('#canvasWrap');
@@ -1442,7 +1468,7 @@ async function setDrawFullscreen(on){
   try{
     if(on){
       focusPaletteRestore=state.paletteCollapsed;setPaletteCollapsed(true,false);drawFocusMode=true;focusLearningPane='draw';document.body.classList.add('draw-focus-mode');
-      mountFullscreenWorkspace();updateFocusCurrentLabel();if(btn){btn.setAttribute('aria-pressed','true');btn.textContent='✕ 離開全螢幕'}
+      mountFullscreenWorkspace();updateFocusCurrentLabel();setFullscreenBrushControlsCollapsed(true);if(btn){btn.setAttribute('aria-pressed','true');btn.textContent='✕ 離開全螢幕'}
       await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));fitFullscreenCanvasBox();state.mainCanvasSize=null;await resizeMainCanvases(true);showEraserCursorPreview();
     }else{
       drawFocusMode=false;clearFullscreenCanvasBox();document.body.classList.remove('draw-focus-mode');focusLearningPane='draw';unmountFullscreenWorkspace();setPaletteCollapsed(focusPaletteRestore,false);
@@ -1471,6 +1497,7 @@ function setPaletteCollapsed(collapsed,persist=true){
 renderPalette();setupColorWheel();state.paletteCollapsed=defaultPaletteCollapsed();setPaletteCollapsed(state.paletteCollapsed,false);$('#paletteToggleBtn').onclick=()=>{setPaletteCollapsed(!state.paletteCollapsed);setTimeout(()=>{if($('#drawView').classList.contains('active'))resizeMainCanvases(true)},190)};
 $$('.focus-mode-btn').forEach(b=>b.addEventListener('click',()=>{if(drawFocusMode)setFocusLearningPane(b.dataset.focusPane)}));
 bindDrawFullscreenButton();
+const fullscreenBrushToggle=$('#fullscreenBrushToggle');if(fullscreenBrushToggle)fullscreenBrushToggle.addEventListener('click',e=>{e.preventDefault();const shell=$('#drawFullscreenShell');if(!shell)return;setFullscreenBrushControlsCollapsed(!shell.classList.contains('brush-controls-collapsed'))});
 $$('.compact-tool-panel').forEach(panel=>panel.addEventListener('toggle',()=>{if(panel.open)$$('.compact-tool-panel').forEach(other=>{if(other!==panel)other.open=false})}));
 
 let holdTimer=null;const parentBtn=$('#parentBtn');const beginHold=e=>{e.preventDefault();clearTimeout(holdTimer);holdTimer=setTimeout(()=>openParent(),1200)};const endHold=()=>clearTimeout(holdTimer);parentBtn.addEventListener('pointerdown',beginHold);['pointerup','pointercancel','pointerleave'].forEach(ev=>parentBtn.addEventListener(ev,endHold));
