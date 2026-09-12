@@ -1186,3 +1186,48 @@ body.draw-focus-mode ::selection,#drawFullscreenShell ::selection{background:tra
     overflow:visible!important;z-index:2!important;margin:0 0 8px!important;
   }
 }
+
+
+/* V1.7.40｜調色盤互動與自訂色 UI 精修 */
+.palette-color-actions{display:none!important}
+.palette-color-tip{font-size:9px;line-height:1.35;text-align:center;color:#8a7b69;padding:2px 4px 0}
+.add-color-chip{
+  position:relative!important;display:grid!important;place-items:center!important;padding:0!important;
+  background:conic-gradient(from 0deg,#ff5d6c,#ffb347,#ffe25a,#58d68d,#43c6db,#5b8cff,#9b6dff,#f06bb5,#ff5d6c)!important;
+  border:3px solid #fff!important;outline:2px dashed rgba(74,86,112,.38)!important;box-shadow:0 5px 13px rgba(63,78,112,.18)!important;
+  overflow:visible!important;touch-action:manipulation!important;
+}
+.add-color-chip span{display:grid;place-items:center;width:18px;height:18px;border-radius:50%;background:rgba(255,255,255,.94);color:#3b4660;font-size:16px;font-weight:1000;line-height:1;box-shadow:0 2px 6px rgba(0,0,0,.14)}
+.add-color-chip:active{transform:scale(.92)}
+.custom-color-head{padding:2px 1px}
+.custom-color-head>span::before{content:'★ ';color:#f4a62a}
+.clear-custom-colors-btn{background:transparent!important;border:1px solid #e6ddd2!important;color:#8b8177!important;box-shadow:none!important}
+
+.color-wheel-overlay.is-open{display:grid!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important}
+.color-wheel-card{width:min(700px,calc(100vw - 24px));border-radius:28px!important;padding:18px!important;background:rgba(255,253,249,.985)!important;border:1px solid rgba(235,218,197,.95)!important;box-shadow:0 30px 90px rgba(30,35,48,.30)!important}
+.color-wheel-head{align-items:center!important}
+.color-wheel-head .eyebrow{font-size:12px}
+.color-wheel-head h2{font-size:22px!important;margin-top:2px!important}
+.color-wheel-main{grid-template-columns:minmax(250px,1fr) minmax(190px,.72fr)!important;gap:20px!important}
+.color-wheel-shell{width:min(330px,70vw)!important;box-shadow:0 16px 38px rgba(46,51,63,.20),0 0 0 8px rgba(255,255,255,.98)!important}
+.color-wheel-actions{grid-template-columns:1fr 1fr!important;gap:8px!important}
+#saveWheelColorBtn,#confirmColorWheelBtn{min-height:46px!important;border-radius:15px!important;font-size:13px!important}
+#saveWheelColorBtn{background:#fff5df!important;color:#8a5b20!important;border:1px solid #f0d7a4!important}
+#confirmColorWheelBtn{background:linear-gradient(180deg,#ff9d58,#ff7e38)!important}
+body.draw-focus-mode .color-wheel-overlay{z-index:2147483640!important}
+.draw-fullscreen-shell .add-color-chip{pointer-events:auto!important;touch-action:manipulation!important}
+
+@media(max-width:650px){
+  .palette-color-tip{font-size:8px;padding-top:1px}
+  .add-color-chip span{width:15px;height:15px;font-size:13px}
+  .color-wheel-overlay{padding:8px!important;align-items:center!important}
+  .color-wheel-card{width:100%!important;max-height:calc(100dvh - 16px)!important;overflow:auto!important;padding:13px!important;border-radius:22px!important}
+  .color-wheel-main{grid-template-columns:1fr!important;gap:12px!important;margin-top:10px!important}
+  .color-wheel-shell{width:min(280px,76vw)!important}
+  .color-wheel-side{gap:8px!important}
+  .color-wheel-preview-row{padding:8px!important}
+  .color-wheel-preview{width:40px!important;height:40px!important}
+  .color-wheel-help{display:none!important}
+  .color-wheel-actions{grid-template-columns:1fr 1fr!important}
+  #saveWheelColorBtn,#confirmColorWheelBtn{min-height:42px!important;padding:8px 6px!important;font-size:11px!important}
+}

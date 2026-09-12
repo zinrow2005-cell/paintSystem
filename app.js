@@ -1351,7 +1351,7 @@ $$('.practice-tabs .seg').forEach(b=>b.onclick=()=>{
 });
 function selectColor(color){
   state.color=color;
-  $$('.color-chip').forEach(x=>x.classList.toggle('active',x.dataset.color.toLowerCase()===String(color).toLowerCase()));
+  $$('.color-chip[data-color]').forEach(x=>x.classList.toggle('active',String(x.dataset.color||'').toLowerCase()===String(color).toLowerCase()));
   const sw=$('#currentColorSwatch');if(sw)sw.style.background=color;
   if(state.tool==='eraser')setTool('pencil')
 }
@@ -1378,24 +1378,41 @@ function setWheelFromPoint(e){
 }
 function openColorWheel(){
   const overlay=$('#colorWheelPopover');if(!overlay)return;
-  if(overlay.parentElement!==document.body)document.body.appendChild(overlay);
+  const host=(drawFocusMode&&fullscreenShell?.isConnected)?fullscreenShell:document.body;
+  if(overlay.parentElement!==host)host.appendChild(overlay);
   colorWheelHSV=hexToHsv(state.color);if(colorWheelHSV.v<.2)colorWheelHSV.v=.2;
-  overlay.hidden=false;overlay.setAttribute('aria-hidden','false');document.body.classList.add('color-wheel-open');
-  requestAnimationFrame(()=>{drawColorWheel();updateColorWheelPointer();$('#colorWheelCanvas')?.focus?.()})
+  overlay.hidden=false;overlay.removeAttribute('hidden');overlay.classList.add('is-open');overlay.setAttribute('aria-hidden','false');
+  document.body.classList.add('color-wheel-open');
+  overlay.style.display='grid';overlay.style.visibility='visible';overlay.style.opacity='1';overlay.style.pointerEvents='auto';
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{drawColorWheel();updateColorWheelPointer();$('#colorWheelCanvas')?.focus?.()}));
 }
 function closeColorWheel(apply=false){
-  if(apply)selectColor(hsvToHex(colorWheelHSV.h,colorWheelHSV.s,colorWheelHSV.v));colorWheelDragging=false;colorWheelPointerId=null;const overlay=$('#colorWheelPopover');if(overlay){overlay.hidden=true;overlay.setAttribute('aria-hidden','true')}document.body.classList.remove('color-wheel-open')
+  if(apply)selectColor(hsvToHex(colorWheelHSV.h,colorWheelHSV.s,colorWheelHSV.v));
+  colorWheelDragging=false;colorWheelPointerId=null;const overlay=$('#colorWheelPopover');
+  if(overlay){overlay.classList.remove('is-open');overlay.hidden=true;overlay.setAttribute('hidden','');overlay.setAttribute('aria-hidden','true');overlay.style.removeProperty('display');overlay.style.removeProperty('visibility');overlay.style.removeProperty('opacity');overlay.style.removeProperty('pointer-events');if(overlay.parentElement!==document.body)document.body.appendChild(overlay)}
+  document.body.classList.remove('color-wheel-open');
 }
 function setupColorWheel(){
-  const canvas=$('#colorWheelCanvas');if(!canvas)return;canvas.addEventListener('pointerdown',e=>{if(colorWheelPointerId!==null)return;e.preventDefault();colorWheelDragging=true;colorWheelPointerId=e.pointerId;try{canvas.setPointerCapture(e.pointerId)}catch{};setWheelFromPoint(e)});canvas.addEventListener('pointermove',e=>{if(!colorWheelDragging||colorWheelPointerId!==e.pointerId)return;e.preventDefault();setWheelFromPoint(e)});const end=e=>{if(colorWheelPointerId!==e.pointerId)return;colorWheelDragging=false;colorWheelPointerId=null};canvas.addEventListener('pointerup',end);canvas.addEventListener('pointercancel',end);canvas.addEventListener('lostpointercapture',end);
-  $('#colorBrightnessRange').oninput=e=>{colorWheelHSV.v=Math.max(.2,Math.min(1,Number(e.target.value)/100));updateColorWheelPointer()};
-  $('#openColorWheelBtn').onclick=e=>{e?.preventDefault?.();openColorWheel()};
-  $('#closeColorWheelBtn').onclick=()=>closeColorWheel(false);
-  $('#confirmColorWheelBtn').onclick=()=>closeColorWheel(true);
-  const saveWheel=$('#saveWheelColorBtn');if(saveWheel)saveWheel.onclick=()=>{const hex=hsvToHex(colorWheelHSV.h,colorWheelHSV.s,colorWheelHSV.v);addQuickColor(hex,{select:true,notify:true});closeColorWheel(false)};
-  const saveCurrent=$('#saveCurrentColorBtn');if(saveCurrent)saveCurrent.onclick=()=>addQuickColor(state.color,{select:true,notify:true});
-  const clearCustom=$('#clearCustomColorsBtn');if(clearCustom)clearCustom.onclick=clearCustomColors;
-  $('#colorWheelPopover').addEventListener('pointerdown',e=>{if(e.target===$('#colorWheelPopover'))closeColorWheel(false)})
+  const canvas=$('#colorWheelCanvas');if(!canvas)return;
+  const setFromPointer=e=>{e.preventDefault();setWheelFromPoint(e)};
+  canvas.addEventListener('pointerdown',e=>{if(colorWheelPointerId!==null)return;e.preventDefault();e.stopPropagation();colorWheelDragging=true;colorWheelPointerId=e.pointerId;try{canvas.setPointerCapture(e.pointerId)}catch{};setWheelFromPoint(e)},{passive:false});
+  canvas.addEventListener('pointermove',e=>{if(!colorWheelDragging||colorWheelPointerId!==e.pointerId)return;e.preventDefault();setWheelFromPoint(e)},{passive:false});
+  const end=e=>{if(colorWheelPointerId!==e.pointerId)return;colorWheelDragging=false;try{canvas.releasePointerCapture?.(e.pointerId)}catch{};colorWheelPointerId=null};
+  canvas.addEventListener('pointerup',end);canvas.addEventListener('pointercancel',end);canvas.addEventListener('lostpointercapture',end);
+  if(!window.PointerEvent){
+    const touchPoint=e=>{const t=e.touches?.[0]||e.changedTouches?.[0];if(!t)return;setWheelFromPoint({clientX:t.clientX,clientY:t.clientY})};
+    canvas.addEventListener('touchstart',e=>{e.preventDefault();colorWheelDragging=true;touchPoint(e)},{passive:false});
+    canvas.addEventListener('touchmove',e=>{if(!colorWheelDragging)return;e.preventDefault();touchPoint(e)},{passive:false});
+    canvas.addEventListener('touchend',()=>{colorWheelDragging=false},{passive:false});
+  }
+  const range=$('#colorBrightnessRange');if(range)range.oninput=e=>{colorWheelHSV.v=Math.max(.2,Math.min(1,Number(e.target.value)/100));updateColorWheelPointer()};
+  const legacyOpen=$('#openColorWheelBtn');if(legacyOpen)bindReliableTap(legacyOpen,()=>openColorWheel());
+  bindReliableTap($('#closeColorWheelBtn'),()=>closeColorWheel(false));
+  bindReliableTap($('#confirmColorWheelBtn'),()=>closeColorWheel(true));
+  bindReliableTap($('#saveWheelColorBtn'),()=>{const hex=hsvToHex(colorWheelHSV.h,colorWheelHSV.s,colorWheelHSV.v);addQuickColor(hex,{select:true,notify:true});closeColorWheel(false)});
+  const saveCurrent=$('#saveCurrentColorBtn');if(saveCurrent)bindReliableTap(saveCurrent,()=>addQuickColor(state.color,{select:true,notify:true}));
+  const clearCustom=$('#clearCustomColorsBtn');if(clearCustom)bindReliableTap(clearCustom,()=>clearCustomColors());
+  const overlay=$('#colorWheelPopover');if(overlay)overlay.addEventListener('pointerdown',e=>{if(e.target===overlay){e.preventDefault();closeColorWheel(false)}},{passive:false});
 }
 
 let drawFocusMode=false,focusPaletteRestore=false,focusLearningPane='draw';
@@ -1533,14 +1550,28 @@ function addQuickColor(color,{select=true,notify=true}={}){
 function clearCustomColors(){
   customColors=[];persistCustomColors();renderPalette();toast('已清除自訂顏色');
 }
+function bindReliableTap(el,handler){
+  if(!el||el.dataset.tapBound==='1')return;
+  el.dataset.tapBound='1';let lastPointerAt=0;
+  el.addEventListener('pointerup',e=>{
+    if(e.pointerType==='touch'||e.pointerType==='pen'){
+      lastPointerAt=Date.now();e.preventDefault();e.stopPropagation();handler(e);
+    }
+  },{passive:false});
+  el.addEventListener('click',e=>{
+    if(Date.now()-lastPointerAt<650)return;
+    e.preventDefault();e.stopPropagation();handler(e);
+  });
+}
 function renderPalette(){
   const fixed=$('#colorRow'),custom=$('#customColorRow'),section=$('#customColorSection');
-  if(fixed)fixed.innerHTML=COLORS.map(c=>`<button class="color-chip ${c===state.color?'active':''}" data-color="${c}" style="background:${c}" aria-label="選擇固定顏色 ${c}"></button>`).join('');
+  if(fixed)fixed.innerHTML=COLORS.map(c=>`<button class="color-chip ${c===state.color?'active':''}" data-color="${c}" style="background:${c}" aria-label="選擇固定顏色 ${c}"></button>`).join('')+`<button id="addColorChipBtn" class="color-chip add-color-chip" type="button" aria-label="新增自訂顏色"><span>＋</span></button>`;
   if(custom)custom.innerHTML=customColors.map(c=>`<button class="color-chip custom-color-chip ${c===state.color?'active':''}" data-color="${c}" style="background:${c}" aria-label="選擇我的顏色 ${c}"></button>`).join('');
   if(section)section.hidden=!customColors.length;
-  $$('.color-chip').forEach(b=>b.onclick=()=>selectColor(b.dataset.color));
+  $$('.color-chip[data-color]').forEach(b=>b.onclick=()=>selectColor(b.dataset.color));
+  bindReliableTap($('#addColorChipBtn'),()=>openColorWheel());
   const sw=$('#currentColorSwatch');if(sw)sw.style.background=state.color;
-  $$('.color-chip').forEach(x=>x.classList.toggle('active',x.dataset.color.toLowerCase()===String(state.color).toLowerCase()));
+  $$('.color-chip[data-color]').forEach(x=>x.classList.toggle('active',String(x.dataset.color||'').toLowerCase()===String(state.color).toLowerCase()));
 }
 function defaultPaletteCollapsed(){const saved=localStorage.getItem(STORAGE_PALETTE_COLLAPSED);if(saved!==null)return saved==='1';return matchMedia('(max-width:650px)').matches}
 function setPaletteCollapsed(collapsed,persist=true){

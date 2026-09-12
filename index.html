@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#fff5da" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-  <title>小小畫家學習樂園 V1.7.39｜全工具實際操作回歸修正版</title>
+  <title>小小畫家學習樂園 V1.7.40｜調色盤互動與自訂色修正版</title>
   <link rel="manifest" href="./manifest.webmanifest" />
   <link rel="icon" href="./icons/icon-192.png" />
   <link rel="apple-touch-icon" href="./icons/icon-192.png" />
@@ -17,7 +17,7 @@
     <button class="icon-btn" id="homeBtn" aria-label="首頁">🏠</button>
     <div class="brand">
       <h1>🎨 小小畫家學習樂園</h1>
-      <div class="version">V1.7.39｜全螢幕選色與防選取修正</div>
+      <div class="version">V1.7.40｜調色盤互動與自訂快速色修正</div>
     </div>
     <div class="top-actions">
       <button class="star-badge" id="starBadge" aria-label="獎勵星星">⭐ <b id="starCount">0</b></button>
@@ -244,10 +244,7 @@
                   <div class="custom-color-head"><span>我的顏色</span><button id="clearCustomColorsBtn" class="clear-custom-colors-btn" type="button">清除</button></div>
                   <div id="customColorRow" class="color-row custom-color-row"></div>
                 </div>
-                <div class="palette-color-actions">
-                  <button id="saveCurrentColorBtn" class="save-current-color-btn" type="button">＋ 收藏目前顏色</button>
-                  <button id="openColorWheelBtn" class="open-color-wheel-btn" type="button">🌈 更多顏色</button>
-                </div>
+                <div class="palette-color-tip">點彩虹 ＋ 可新增自己的快速顏色</div>
               </div>
             </aside>
             <div id="canvasWrap" class="canvas-wrap">
@@ -434,8 +431,8 @@
           </label>
           <div class="color-wheel-help">在圓盤上拖曳選顏色，往中心顏色會變淡；下方滑桿可調整明暗。</div>
           <div class="color-wheel-actions">
-            <button id="saveWheelColorBtn" class="soft-btn full" type="button">＋ 加入快速顏色</button>
-            <button id="confirmColorWheelBtn" class="primary-btn full" type="button">使用這個顏色</button>
+            <button id="saveWheelColorBtn" class="soft-btn full" type="button">☆ 收藏到我的顏色</button>
+            <button id="confirmColorWheelBtn" class="primary-btn full" type="button">✓ 使用顏色</button>
           </div>
         </div>
       </div>
