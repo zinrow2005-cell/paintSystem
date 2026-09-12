@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#fff5da" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-  <title>小小畫家學習樂園 V1.7.32｜全螢幕畫畫・寫字・發音整合版</title>
+  <title>小小畫家學習樂園 V1.7.33｜全螢幕畫板與工具列穩定修正版</title>
   <link rel="manifest" href="./manifest.webmanifest" />
   <link rel="icon" href="./icons/icon-192.png" />
   <link rel="apple-touch-icon" href="./icons/icon-192.png" />
@@ -17,7 +17,7 @@
     <button class="icon-btn" id="homeBtn" aria-label="首頁">🏠</button>
     <div class="brand">
       <h1>🎨 小小畫家學習樂園</h1>
-      <div class="version">V1.7.32｜全螢幕畫畫／寫字／發音整合</div>
+      <div class="version">V1.7.33｜全螢幕畫板與工具列穩定修正</div>
     </div>
     <div class="top-actions">
       <button class="star-badge" id="starBadge" aria-label="獎勵星星">⭐ <b id="starCount">0</b></button>
@@ -169,7 +169,11 @@
             <div id="focusLearningHost" class="focus-learning-host"></div>
           </div>
 
-          <div class="guide-style-panel" aria-label="圖案樣式與底圖透明度">
+          <div class="compact-draw-tools" aria-label="畫板設定工具列">
+            <details id="guideCompactPanel" class="compact-tool-panel">
+              <summary><span class="compact-tool-title">🖼️ 圖案／底圖</span><span id="guideCompactSummary" class="compact-tool-summary">彩色・15%</span></summary>
+              <div class="compact-tool-body">
+                <div class="guide-style-panel" aria-label="圖案樣式與底圖透明度">
             <div class="guide-style-copy">
               <div class="guide-style-title">圖案樣式選擇</div>
               <div class="guide-style-note" id="guideStyleNote">可切換成彩色底圖或黑白線稿，底圖透明度可自行調整。</div>
@@ -185,9 +189,14 @@
                 <div class="guide-opacity-scale"><span>隱藏 0%</span><span>預設 15%</span><span>清楚 100%</span></div>
               </div>
             </div>
-          </div>
+                </div>
+              </div>
+            </details>
 
-          <div class="layer-panel layer-manager" aria-label="繪圖圖層管理">
+            <details id="layerCompactPanel" class="compact-tool-panel">
+              <summary><span class="compact-tool-title">🧩 圖層</span><span id="layerCompactSummary" class="compact-tool-summary">描線・3 層</span></summary>
+              <div class="compact-tool-body">
+                <div class="layer-panel layer-manager" aria-label="繪圖圖層管理">
             <div class="layer-manager-head">
               <div>
                 <span class="layer-label">圖層</span>
@@ -207,6 +216,10 @@
                 <button id="layerDeleteBtn" class="layer-mini-btn danger" type="button" title="刪除自訂圖層">🗑️ 刪除</button>
               </div>
             </div>
+                </div>
+
+              </div>
+            </details>
           </div>
 
           <div class="canvas-stage">

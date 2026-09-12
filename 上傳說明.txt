@@ -1,0 +1,13 @@
+V1.7.33 GitHub 更新方式
+
+你原本 GitHub 已有 400 張教材圖片，本次不需要重新上傳 assets。
+請將本資料夾內下列 7 個檔案上傳到 Repository 根目錄並覆蓋同名檔案：
+index.html
+styles.css
+app.js
+sw.js
+manifest.webmanifest
+README.md
+CORE_SHA256.txt
+
+完成後等待 GitHub Pages 重新部署，再重新整理網站。iPad / iPhone 若仍顯示舊版，可完全關閉主畫面 PWA / Safari 分頁後重新開啟一次。

@@ -850,3 +850,61 @@ body.draw-focus-mode{overflow:hidden!important}
   .workspace-card.draw-focus-fullscreen .learn-practice-panel .practice-note{display:none}
   .workspace-card.draw-focus-fullscreen .learn-practice-panel .practice-tabs .seg{padding:6px 4px}
 }
+
+
+/* V1.7.33｜可收合工具列＋全螢幕畫板穩定修正＋手機調色盤完整展開 */
+.compact-draw-tools{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px;position:relative;z-index:16}
+.compact-tool-panel{min-width:0;border:1px solid #eadfce;border-radius:16px;background:rgba(255,252,246,.94);box-shadow:0 6px 16px rgba(70,55,30,.05);overflow:visible}
+.compact-tool-panel>summary{list-style:none;display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:42px;padding:8px 11px;cursor:pointer;font-weight:1000;color:#42506a;touch-action:manipulation;-webkit-user-select:none;user-select:none}
+.compact-tool-panel>summary::-webkit-details-marker{display:none}
+.compact-tool-panel>summary::after{content:'▾';font-size:13px;color:#8c7660;transition:transform .15s ease}
+.compact-tool-panel[open]>summary::after{transform:rotate(180deg)}
+.compact-tool-title{white-space:nowrap}.compact-tool-summary{min-width:0;margin-left:auto;font-size:11px;font-weight:900;color:#8a7763;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.compact-tool-body{padding:0 8px 8px}
+.compact-tool-panel .guide-style-panel,.compact-tool-panel .layer-manager{margin:0!important;box-shadow:none!important;border-radius:14px!important}
+.compact-tool-panel .guide-style-panel{padding:10px!important}
+.compact-tool-panel .layer-manager{padding:10px!important}
+.compact-tool-panel .guide-style-note,.compact-tool-panel .layer-manager-hint{font-size:10px}
+.compact-tool-panel .guide-style-tabs{min-width:0!important;width:100%}
+.compact-tool-panel .layer-card-strip{max-height:142px}
+
+/* Full-screen overlay is detached to <body>; vh fallback keeps older iPad Safari working. */
+.workspace-card.draw-focus-fullscreen{height:100vh!important;min-height:100vh!important;max-height:100vh!important;inset:0!important;contain:layout paint style}
+@supports(height:100dvh){.workspace-card.draw-focus-fullscreen{height:100dvh!important;min-height:100dvh!important;max-height:100dvh!important}}
+.workspace-card.draw-focus-fullscreen .compact-draw-tools{display:none!important}
+.workspace-card.draw-focus-fullscreen .canvas-stage{width:100%!important;min-width:0!important;min-height:120px!important}
+.workspace-card.draw-focus-fullscreen .canvas-wrap{min-width:160px!important;min-height:120px!important;max-width:100%!important;max-height:100%!important;margin:auto!important}
+.fullscreen-draw-btn{touch-action:manipulation!important;-webkit-user-select:none!important;user-select:none!important;-webkit-touch-callout:none!important}
+
+/* Mobile: opening the palette shows all 7 tools and all 10 common colors at once. */
+@media(max-width:650px){
+  .compact-draw-tools{grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}
+  .compact-tool-panel>summary{min-height:38px;padding:7px 8px;font-size:11px}
+  .compact-tool-summary{font-size:9px}
+  .compact-tool-body{position:absolute;left:0;right:0;z-index:45;padding:6px 0 0}
+  .compact-tool-panel[open] .compact-tool-body{display:block}
+  .compact-tool-panel .guide-style-panel,.compact-tool-panel .layer-manager{background:rgba(255,250,241,.99)!important;box-shadow:0 14px 34px rgba(45,35,20,.18)!important;border-radius:16px!important}
+
+  .palette-dock:not(.collapsed){left:6px!important;right:6px!important;top:6px!important;width:auto!important;min-width:0!important;max-width:none!important;max-height:none!important;overflow:visible!important;padding:7px!important;display:block!important;background:rgba(255,249,238,.98)!important}
+  .palette-dock:not(.collapsed) .palette-toggle{width:100%!important;min-height:34px!important;padding:4px 8px!important;writing-mode:horizontal-tb!important}
+  .palette-dock:not(.collapsed) .palette-body{display:grid!important;gap:5px!important;width:100%!important;overflow:visible!important}
+  .palette-dock:not(.collapsed) .palette-section-title{font-size:10px!important;padding:0 1px!important}
+  .palette-dock:not(.collapsed) .palette-divider{margin:1px 0!important}
+  .palette-dock:not(.collapsed) .palette-tools.tool-group.expanded-tools{grid-template-columns:repeat(7,minmax(0,1fr))!important;gap:3px!important;width:100%!important}
+  .palette-dock:not(.collapsed) .palette-tools .tool-btn{grid-column:auto!important;min-width:0!important;min-height:43px!important;padding:3px 1px!important;border-radius:10px!important;font-size:17px!important;overflow:hidden!important}
+  .palette-dock:not(.collapsed) .palette-tools .tool-btn span{font-size:7.5px!important;line-height:1.1!important;white-space:nowrap!important}
+  .palette-dock:not(.collapsed) .current-color-swatch{height:18px!important;margin:0!important}
+  .palette-dock:not(.collapsed) .palette-colors{display:grid!important;grid-template-columns:repeat(10,minmax(0,1fr))!important;gap:3px!important;width:100%!important;justify-items:center!important}
+  .palette-dock:not(.collapsed) .palette-colors .color-chip{width:27px!important;height:27px!important;min-width:27px!important;margin:0!important;border-width:2px!important}
+  .palette-dock:not(.collapsed) .open-color-wheel-btn{min-height:34px!important;padding:6px!important;border-radius:10px!important;font-size:10px!important}
+  .workspace-card.draw-focus-fullscreen .palette-dock:not(.collapsed){left:5px!important;right:5px!important;top:5px!important;width:auto!important;min-width:0!important;max-height:none!important;overflow:visible!important}
+}
+@media(max-width:390px){
+  .palette-dock:not(.collapsed) .palette-tools .tool-btn{font-size:15px!important}
+  .palette-dock:not(.collapsed) .palette-tools .tool-btn span{font-size:7px!important}
+  .palette-dock:not(.collapsed) .palette-colors .color-chip{width:24px!important;height:24px!important;min-width:24px!important}
+}
+/* Full-screen mode overlay stacking fixes */
+body.draw-focus-mode .color-wheel-overlay{z-index:320!important}
+body.draw-focus-mode .toast{z-index:340!important}
+body.draw-focus-mode .reward-overlay{z-index:300!important}
