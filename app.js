@@ -1078,22 +1078,47 @@ function drawCenteredSpacedText(ctx,text,cx,y,tracking){
   ctx.textAlign='center';
 }
 function drawPracticeGuide(){
-  if(!state.current)return;const r=practiceGuide.getBoundingClientRect();clearCanvasPixels(practiceGuide,pgctx);pgctx.save();pgctx.lineWidth=1;pgctx.textAlign='center';pgctx.textBaseline='middle';
+  if(!state.current)return;
+  const r=practiceGuide.getBoundingClientRect();
+  if(r.width<2||r.height<2)return;
+  clearCanvasPixels(practiceGuide,pgctx);pgctx.save();pgctx.lineWidth=1;pgctx.textAlign='center';pgctx.textBaseline='middle';
+  const isFull=!!(drawFocusMode&&focusLearningPane==='practice'&&$('#drawFullscreenShell')?.contains(practiceGuide));
   const alpha=state.practiceStage===0?.23:state.practiceStage===1?.10:0;
   if(state.practiceMode==='en'){
-    pgctx.strokeStyle='#bfc8d1';[r.height*.18,r.height*.38,r.height*.62,r.height*.82].forEach((y,i)=>{pgctx.setLineDash(i===1||i===2?[5,6]:[]);pgctx.beginPath();pgctx.moveTo(8,y);pgctx.lineTo(r.width-8,y);pgctx.stroke()});pgctx.setLineDash([]);
-    const txt=state.current.en.toLowerCase(),maxW=r.width*.90;
-    const fitted=fitSpacedText(pgctx,txt,maxW,Math.min(66,r.height*.39),25,.14,'ui-rounded, sans-serif');
+    pgctx.strokeStyle='#bfc8d1';
+    const lineYs=isFull?[r.height*.20,r.height*.39,r.height*.61,r.height*.80]:[r.height*.18,r.height*.38,r.height*.62,r.height*.82];
+    lineYs.forEach((y,i)=>{pgctx.setLineDash(i===1||i===2?[7,8]:[]);pgctx.beginPath();pgctx.moveTo(isFull?r.width*.035:8,y);pgctx.lineTo(isFull?r.width*.965:r.width-8,y);pgctx.stroke()});pgctx.setLineDash([]);
+    const txt=state.current.en.toLowerCase(),maxW=r.width*(isFull?.88:.90);
+    const maxSize=isFull?Math.min(r.height*.42,Math.max(92,r.width*.25)):Math.min(66,r.height*.39);
+    const minSize=isFull?42:25;
+    const fitted=fitSpacedText(pgctx,txt,maxW,maxSize,minSize,isFull?.18:.14,'ui-rounded, sans-serif');
     pgctx.fillStyle=`rgba(60,70,80,${alpha})`;if(alpha)drawCenteredSpacedText(pgctx,txt,r.width*.5,r.height*.5,fitted.tracking);
   }else if(state.practiceMode==='zh'){
-    const chars=[...state.current.zh],cols=Math.max(1,chars.length),gap=6,cell=Math.min((r.width-gap*(cols+1))/cols,(r.height-gap*3)/2),gridW=cell*cols+gap*(cols-1),sx=(r.width-gridW)/2;
-    for(let row=0;row<2;row++)for(let i=0;i<cols;i++){const x=sx+i*(cell+gap),y=gap+row*(cell+gap);pgctx.strokeStyle='#cfc7b7';pgctx.strokeRect(x,y,cell,cell);pgctx.save();pgctx.setLineDash([4,4]);pgctx.strokeStyle='#dfd7ca';pgctx.beginPath();pgctx.moveTo(x+cell/2,y);pgctx.lineTo(x+cell/2,y+cell);pgctx.moveTo(x,y+cell/2);pgctx.lineTo(x+cell,y+cell/2);pgctx.moveTo(x,y);pgctx.lineTo(x+cell,y+cell);pgctx.moveTo(x+cell,y);pgctx.lineTo(x,y+cell);pgctx.stroke();pgctx.restore();if((row===0&&state.practiceStage<2)||(row===1&&state.practiceStage===0)){pgctx.font=`700 ${cell*.74}px "PingFang TC","Microsoft JhengHei",sans-serif`;pgctx.fillStyle=row===0?`rgba(70,70,70,${alpha})`:'rgba(70,70,70,.09)';pgctx.fillText(chars[i],x+cell/2,y+cell/2)}}
-  }else{
-    const syllables=state.current.zhuyin.split(/\s+/).filter(Boolean),cols=Math.max(1,syllables.length),gap=Math.max(8,Math.min(14,r.width*.025)),cellW=Math.min(110,(r.width-gap*(cols+1))/cols),cellH=(r.height-gap*3)/2,gridW=cellW*cols+gap*(cols-1),sx=(r.width-gridW)/2;
+    const chars=[...state.current.zh],cols=Math.max(1,chars.length);
+    const gap=isFull?Math.max(14,Math.min(30,r.width*.022)):6;
+    const side=isFull?Math.max(28,r.width*.06):gap;
+    const vert=isFull?Math.max(55,r.height*.14):gap;
+    const availW=r.width-side*2-gap*(cols-1),availH=r.height-vert*2-gap;
+    const cell=Math.max(32,Math.min(availW/cols,availH/2));
+    const gridW=cell*cols+gap*(cols-1),gridH=cell*2+gap,sx=(r.width-gridW)/2,sy=(r.height-gridH)/2;
     for(let row=0;row<2;row++)for(let i=0;i<cols;i++){
-      const x=sx+i*(cellW+gap),y=gap+row*(cellH+gap),syllable=syllables[i];pgctx.strokeStyle='#c9c3b9';pgctx.strokeRect(x,y,cellW,cellH);pgctx.save();pgctx.setLineDash([4,4]);pgctx.strokeStyle='#ddd7cc';pgctx.beginPath();pgctx.moveTo(x,y+cellH/2);pgctx.lineTo(x+cellW,y+cellH/2);pgctx.stroke();pgctx.restore();
+      const x=sx+i*(cell+gap),y=sy+row*(cell+gap);pgctx.strokeStyle='#cfc7b7';pgctx.strokeRect(x,y,cell,cell);pgctx.save();pgctx.setLineDash([6,7]);pgctx.strokeStyle='#dfd7ca';pgctx.beginPath();pgctx.moveTo(x+cell/2,y);pgctx.lineTo(x+cell/2,y+cell);pgctx.moveTo(x,y+cell/2);pgctx.lineTo(x+cell,y+cell/2);pgctx.moveTo(x,y);pgctx.lineTo(x+cell,y+cell);pgctx.moveTo(x+cell,y);pgctx.lineTo(x,y+cell);pgctx.stroke();pgctx.restore();
+      if((row===0&&state.practiceStage<2)||(row===1&&state.practiceStage===0)){pgctx.font=`700 ${cell*(isFull?.79:.74)}px "PingFang TC","Microsoft JhengHei",sans-serif`;pgctx.fillStyle=row===0?`rgba(70,70,70,${alpha})`:'rgba(70,70,70,.09)';pgctx.fillText(chars[i],x+cell/2,y+cell/2)}
+    }
+  }else{
+    const syllables=state.current.zhuyin.split(/\s+/).filter(Boolean),cols=Math.max(1,syllables.length);
+    const gap=isFull?Math.max(16,Math.min(32,r.width*.024)):Math.max(8,Math.min(14,r.width*.025));
+    const side=isFull?Math.max(28,r.width*.055):gap;
+    const vert=isFull?Math.max(55,r.height*.14):gap;
+    const availW=r.width-side*2-gap*(cols-1),availH=r.height-vert*2-gap;
+    const cellW=isFull?Math.max(70,availW/cols):Math.min(110,(r.width-gap*(cols+1))/cols);
+    const cellH=isFull?Math.max(100,availH/2):(r.height-gap*3)/2;
+    const gridW=cellW*cols+gap*(cols-1),gridH=cellH*2+gap,sx=(r.width-gridW)/2,sy=(r.height-gridH)/2;
+    for(let row=0;row<2;row++)for(let i=0;i<cols;i++){
+      const x=sx+i*(cellW+gap),y=sy+row*(cellH+gap),syllable=syllables[i];pgctx.strokeStyle='#c9c3b9';pgctx.strokeRect(x,y,cellW,cellH);pgctx.save();pgctx.setLineDash([6,7]);pgctx.strokeStyle='#ddd7cc';pgctx.beginPath();pgctx.moveTo(x,y+cellH/2);pgctx.lineTo(x+cellW,y+cellH/2);pgctx.stroke();pgctx.restore();
       if((row===0&&state.practiceStage<2)||(row===1&&state.practiceStage===0)){
-        const fitted=fitSpacedText(pgctx,syllable,cellW*.82,Math.min(46,cellH*.58),22,.08,'"PingFang TC","Microsoft JhengHei",sans-serif');
+        const maxFs=isFull?Math.min(cellH*.68,cellW*.82):Math.min(46,cellH*.58);
+        const fitted=fitSpacedText(pgctx,syllable,cellW*(isFull?.88:.82),maxFs,isFull?30:22,isFull?.12:.08,'"PingFang TC","Microsoft JhengHei",sans-serif');
         pgctx.fillStyle=row===0?`rgba(70,70,70,${alpha})`:'rgba(70,70,70,.09)';drawCenteredSpacedText(pgctx,syllable,x+cellW/2,y+cellH/2,fitted.tracking);
       }
     }
@@ -1326,8 +1351,7 @@ function updateFocusCurrentLabel(){
 }
 function moveLearningPanelsToFocus(){
   const host=$('#focusLearningHost');if(!host)return;
-  const pron=focusPronunciationPanel(),practice=focusPracticePanel();
-  if(pron&&pron.parentElement!==host)host.appendChild(pron);
+  const practice=focusPracticePanel();
   if(practice&&practice.parentElement!==host)host.appendChild(practice);
 }
 function restoreLearningPanels(){
@@ -1379,34 +1403,39 @@ function unmountFullscreenWorkspace(){
 }
 function clearFullscreenCanvasBox(){
   const wrap=$('#canvasWrap');if(!wrap)return;
-  wrap.style.removeProperty('width');wrap.style.removeProperty('height');wrap.style.removeProperty('max-width');wrap.style.removeProperty('max-height');
+  wrap.style.removeProperty('width');wrap.style.removeProperty('height');wrap.style.removeProperty('max-width');wrap.style.removeProperty('max-height');wrap.style.removeProperty('aspect-ratio');
 }
 function fitFullscreenCanvasBox(){
   if(!drawFocusMode||focusLearningPane!=='draw')return false;
   const shell=$('#drawFullscreenShell'),host=$('#drawFullscreenMain'),stage=$('#drawFullscreenShell .canvas-stage'),wrap=$('#canvasWrap');
   if(!shell||!host||!stage||!wrap)return false;
   updateFullscreenViewportBox();
-  const r=host.getBoundingClientRect(),cs=getComputedStyle(host);
-  let aw=r.width-(parseFloat(cs.paddingLeft)||0)-(parseFloat(cs.paddingRight)||0)-12;
-  let ah=r.height-(parseFloat(cs.paddingTop)||0)-(parseFloat(cs.paddingBottom)||0)-12;
-  aw=Math.max(280,aw);ah=Math.max(210,ah);
-  let w=Math.min(aw,ah*4/3),h=w*3/4;if(h>ah){h=ah;w=h*4/3}
-  w=Math.max(280,Math.floor(w));h=Math.max(210,Math.floor(h));
-  wrap.style.setProperty('width',`${w}px`,'important');wrap.style.setProperty('height',`${h}px`,'important');
-  wrap.style.setProperty('max-width','100%','important');wrap.style.setProperty('max-height','100%','important');
+  const r=host.getBoundingClientRect();
+  if(r.width<2||r.height<2)return false;
+  wrap.style.setProperty('width','100%','important');
+  wrap.style.setProperty('height','100%','important');
+  wrap.style.setProperty('max-width','none','important');
+  wrap.style.setProperty('max-height','none','important');
+  wrap.style.setProperty('aspect-ratio','auto','important');
   return true;
 }
 async function setFocusLearningPane(pane='draw'){
-  if(!['draw','practice','speech'].includes(pane))pane='draw';
+  if(!['draw','practice'].includes(pane))pane='draw';
   focusLearningPane=pane;
-  const shell=$('#drawFullscreenShell'),panel=$('#focusLearningPanel'),pron=focusPronunciationPanel(),practice=focusPracticePanel();
-  shell?.classList.toggle('focus-pane-practice',pane==='practice');shell?.classList.toggle('focus-pane-speech',pane==='speech');shell?.classList.toggle('focus-pane-draw',pane==='draw');
+  const shell=$('#drawFullscreenShell'),panel=$('#focusLearningPanel'),practice=focusPracticePanel();
+  shell?.classList.toggle('focus-pane-practice',pane==='practice');
+  shell?.classList.toggle('focus-pane-draw',pane==='draw');
+  shell?.classList.remove('focus-pane-speech');
   $$('.focus-mode-btn').forEach(b=>{const active=b.dataset.focusPane===pane;b.classList.toggle('active',active);b.setAttribute('aria-selected',String(active))});
-  if(panel)panel.hidden=pane==='draw';if(pron)pron.hidden=pane!=='speech';if(practice)practice.hidden=pane!=='practice';
+  if(panel)panel.hidden=pane==='draw';if(practice)practice.hidden=pane!=='practice';
   updateFocusCurrentLabel();
   await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
-  if(pane==='practice'){await resizePracticeCanvases(true);drawPracticeGuide()}
-  else if(pane==='draw'){fitFullscreenCanvasBox();await new Promise(r=>requestAnimationFrame(r));state.mainCanvasSize=null;await resizeMainCanvases(true);showEraserCursorPreview()}
+  if(pane==='practice'){
+    state.practiceCanvasSize=null;
+    await resizePracticeCanvases(true);drawPracticeGuide();
+  }else{
+    fitFullscreenCanvasBox();await new Promise(r=>requestAnimationFrame(r));state.mainCanvasSize=null;await resizeMainCanvases(true);showEraserCursorPreview();
+  }
 }
 async function setDrawFullscreen(on){
   const btn=$('#drawFullscreenBtn');on=!!on;if(on===drawFocusMode)return;resetActivePointerSession();

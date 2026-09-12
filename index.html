@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#fff5da" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-  <title>小小畫家學習樂園 V1.7.34｜全螢幕畫板重構修正版</title>
+  <title>小小畫家學習樂園 V1.7.35｜真正全螢幕畫布與大字練習版</title>
   <link rel="manifest" href="./manifest.webmanifest" />
   <link rel="icon" href="./icons/icon-192.png" />
   <link rel="apple-touch-icon" href="./icons/icon-192.png" />
@@ -17,7 +17,7 @@
     <button class="icon-btn" id="homeBtn" aria-label="首頁">🏠</button>
     <div class="brand">
       <h1>🎨 小小畫家學習樂園</h1>
-      <div class="version">V1.7.34｜全螢幕畫板重構修正</div>
+      <div class="version">V1.7.35｜真正全螢幕畫布・大字練習</div>
     </div>
     <div class="top-actions">
       <button class="star-badge" id="starBadge" aria-label="獎勵星星">⭐ <b id="starCount">0</b></button>
@@ -154,10 +154,9 @@
           </div>
 
           <div id="focusLearningBar" class="focus-learning-bar" hidden aria-label="全螢幕學習模式切換">
-            <div class="focus-mode-tabs" role="tablist" aria-label="畫畫、寫字與發音">
+            <div class="focus-mode-tabs" role="tablist" aria-label="畫畫與寫字">
               <button class="focus-mode-btn active" type="button" data-focus-pane="draw" role="tab" aria-selected="true">🎨 <span>畫畫</span></button>
               <button class="focus-mode-btn" type="button" data-focus-pane="practice" role="tab" aria-selected="false">✍️ <span>寫字</span></button>
-              <button class="focus-mode-btn" type="button" data-focus-pane="speech" role="tab" aria-selected="false">🔊 <span>發音</span></button>
             </div>
             <div class="focus-current-word" aria-live="polite">
               <span id="focusCurrentEmoji">🍎</span>
@@ -319,7 +318,7 @@
 
           <div id="learnPracticePanel" class="learn-practice-panel">
             <div class="practice-title">✍️ 文字塗寫練習</div>
-            <div class="practice-note">切換英文／中文／注音時會清空上一個練習畫面；英文單字只顯示一次。</div>
+            <div class="practice-note">切換英文／中文／注音時會清空上一個練習畫面；全螢幕時會依字數自動放大成適合書寫的大小。</div>
             <div class="segmented practice-tabs">
               <button class="seg active" data-practice="en">ABC 英文</button>
               <button class="seg" data-practice="zh">中文字</button>

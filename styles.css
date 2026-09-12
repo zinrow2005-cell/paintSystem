@@ -1005,3 +1005,89 @@ body.draw-focus-mode>#drawFullscreenShell{pointer-events:auto!important}
   .draw-fullscreen-shell .brush-control-panel{grid-template-columns:minmax(300px,1fr) minmax(180px,.55fr)!important}
   .draw-fullscreen-shell .size-row,.draw-fullscreen-shell .opacity-control,.draw-fullscreen-shell .action-row{padding:4px 6px!important}
 }
+
+
+/* V1.7.35｜真正全螢幕畫布：Canvas 佔滿 viewport，控制列全部浮在畫布上方 */
+body.draw-focus-mode{overflow:hidden!important;background:#fffaf1!important}
+.draw-fullscreen-shell{
+  position:fixed!important;inset:auto!important;z-index:2147482000!important;
+  margin:0!important;padding:0!important;display:block!important;overflow:hidden!important;
+  background:#fffaf1!important;isolation:isolate!important;touch-action:none!important;
+}
+.draw-fullscreen-main{position:absolute!important;inset:0!important;display:block!important;padding:0!important;margin:0!important;border:0!important;border-radius:0!important;background:#fffaf1!important;overflow:hidden!important;z-index:1!important}
+.draw-fullscreen-top{position:absolute!important;top:max(6px,env(safe-area-inset-top))!important;left:max(6px,env(safe-area-inset-left))!important;right:max(6px,env(safe-area-inset-right))!important;z-index:120!important;pointer-events:none!important}
+.draw-fullscreen-bottom{position:absolute!important;left:max(8px,env(safe-area-inset-left))!important;right:max(8px,env(safe-area-inset-right))!important;bottom:max(8px,env(safe-area-inset-bottom))!important;z-index:115!important;pointer-events:none!important;display:flex!important;justify-content:center!important}
+.draw-fullscreen-shell .focus-learning-bar{pointer-events:auto!important;display:grid!important;grid-template-columns:auto minmax(120px,auto) auto!important;align-items:center!important;justify-content:space-between!important;gap:8px!important;width:100%!important;margin:0!important;padding:0!important;background:transparent!important;border:0!important;box-shadow:none!important}
+.draw-fullscreen-shell .focus-mode-tabs{justify-self:start!important;width:auto!important;min-width:0!important;display:grid!important;grid-template-columns:repeat(2,minmax(82px,1fr))!important;padding:4px!important;border-radius:16px!important;background:rgba(248,242,233,.92)!important;backdrop-filter:blur(12px)!important;box-shadow:0 6px 20px rgba(57,45,29,.10)!important}
+.draw-fullscreen-shell .focus-mode-btn{min-width:88px!important;padding:9px 12px!important;border-radius:12px!important}
+.draw-fullscreen-shell .focus-current-word{justify-self:center!important;display:inline-flex!important;align-items:center!important;gap:7px!important;max-width:min(38vw,360px)!important;padding:9px 14px!important;border-radius:999px!important;background:rgba(255,247,219,.94)!important;box-shadow:0 6px 18px rgba(70,52,25,.08)!important;backdrop-filter:blur(12px)!important;overflow:hidden!important;white-space:nowrap!important;text-overflow:ellipsis!important;pointer-events:none!important}
+.draw-fullscreen-shell .focus-current-word strong{overflow:hidden;text-overflow:ellipsis}
+.draw-fullscreen-shell .focus-exit-btn{justify-self:end!important;pointer-events:auto!important;background:rgba(255,226,218,.96)!important;box-shadow:0 6px 18px rgba(100,55,42,.08)!important}
+
+/* 畫畫模式：整個 viewport 都是畫布，工具只浮在上面 */
+.draw-fullscreen-shell .canvas-stage{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;display:block!important;margin:0!important;padding:0!important;border:0!important;border-radius:0!important;background:#fffdf9!important;overflow:hidden!important;box-shadow:none!important}
+.draw-fullscreen-shell .canvas-wrap{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;min-width:0!important;min-height:0!important;max-width:none!important;max-height:none!important;aspect-ratio:auto!important;margin:0!important;padding:0!important;border:0!important;border-radius:0!important;background:#fffdf9!important;box-shadow:none!important;overflow:hidden!important;touch-action:none!important}
+.draw-fullscreen-shell .canvas-wrap canvas{position:absolute!important;inset:0!important;width:100%!important;height:100%!important}
+.draw-fullscreen-shell .palette-dock{position:absolute!important;left:max(7px,env(safe-area-inset-left))!important;top:64px!important;z-index:100!important;pointer-events:auto!important;background:rgba(255,249,238,.94)!important;backdrop-filter:blur(12px)!important;box-shadow:0 7px 22px rgba(70,52,27,.10)!important}
+.draw-fullscreen-shell .palette-dock.collapsed{width:48px!important;min-width:48px!important;max-height:110px!important;overflow:hidden!important}
+.draw-fullscreen-shell .toolbar{pointer-events:auto!important;width:min(1120px,calc(100vw - 16px))!important;max-height:none!important;overflow:visible!important;display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;align-items:center!important;gap:8px!important;margin:0!important;padding:7px 9px!important;border:1px solid rgba(235,221,201,.9)!important;border-radius:20px!important;background:rgba(255,253,249,.94)!important;backdrop-filter:blur(14px)!important;box-shadow:0 8px 26px rgba(66,49,24,.11)!important}
+.draw-fullscreen-shell .toolbar .brush-realism-note,.draw-fullscreen-shell .toolbar .pen-hint{display:none!important}
+.draw-fullscreen-shell .brush-control-panel{display:grid!important;grid-template-columns:minmax(360px,1fr) minmax(210px,.48fr)!important;gap:7px!important;min-width:0!important;align-items:center!important}
+.draw-fullscreen-shell .size-row,.draw-fullscreen-shell .opacity-control,.draw-fullscreen-shell .action-row{margin:0!important;padding:5px 7px!important;background:rgba(255,255,255,.76)!important;border-radius:14px!important;border:1px solid rgba(238,226,211,.85)!important}
+.draw-fullscreen-shell .action-row{justify-content:flex-end!important;flex-wrap:nowrap!important;white-space:nowrap!important}
+.draw-fullscreen-shell .size-btn{height:38px!important;min-width:40px!important}
+.draw-fullscreen-shell .action-row button{min-height:40px!important}
+
+/* 寫字模式：練習簿本身鋪滿全螢幕，標籤與操作鍵浮動 */
+.draw-fullscreen-shell.focus-pane-practice .canvas-stage{display:none!important}
+.draw-fullscreen-shell.focus-pane-practice .draw-fullscreen-bottom{display:none!important}
+.draw-fullscreen-shell .focus-learning-panel{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;display:none!important;padding:0!important;margin:0!important;border:0!important;border-radius:0!important;background:#fffaf2!important;overflow:hidden!important;z-index:2!important}
+.draw-fullscreen-shell.focus-pane-practice .focus-learning-panel{display:block!important}
+.draw-fullscreen-shell .focus-learning-host,.draw-fullscreen-shell .learn-practice-panel{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;min-width:0!important;min-height:0!important;margin:0!important;padding:0!important;background:transparent!important}
+.draw-fullscreen-shell .learn-practice-panel{display:block!important}
+.draw-fullscreen-shell .learn-practice-panel .practice-title,.draw-fullscreen-shell .learn-practice-panel .practice-note{display:none!important}
+.draw-fullscreen-shell .learn-practice-panel .practice-wrap{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;min-width:0!important;min-height:0!important;max-width:none!important;max-height:none!important;aspect-ratio:auto!important;margin:0!important;border:0!important;border-radius:0!important;background:#fffaf2!important;box-shadow:none!important;overflow:hidden!important;touch-action:none!important}
+.draw-fullscreen-shell .learn-practice-panel .practice-wrap canvas{position:absolute!important;inset:0!important;width:100%!important;height:100%!important}
+.draw-fullscreen-shell .learn-practice-panel .practice-tabs{position:absolute!important;top:64px!important;left:50%!important;transform:translateX(-50%)!important;z-index:80!important;width:min(620px,calc(100% - 28px))!important;margin:0!important;padding:4px!important;border-radius:16px!important;background:rgba(246,241,232,.94)!important;backdrop-filter:blur(12px)!important;box-shadow:0 7px 22px rgba(68,51,25,.09)!important;pointer-events:auto!important}
+.draw-fullscreen-shell .learn-practice-panel .practice-actions{position:absolute!important;left:50%!important;bottom:max(10px,env(safe-area-inset-bottom))!important;transform:translateX(-50%)!important;z-index:80!important;display:flex!important;gap:9px!important;width:min(600px,calc(100% - 24px))!important;margin:0!important;padding:6px!important;border-radius:16px!important;background:rgba(255,253,249,.93)!important;backdrop-filter:blur(12px)!important;box-shadow:0 8px 24px rgba(68,51,25,.10)!important;pointer-events:auto!important}
+.draw-fullscreen-shell .learn-practice-panel .practice-actions button{flex:1!important;max-width:none!important;min-height:42px!important}
+
+/* 全螢幕完全不顯示發音面板 */
+.draw-fullscreen-shell .learn-pronunciation-panel,[data-focus-pane="speech"]{display:none!important}
+
+@media(max-width:800px){
+  .draw-fullscreen-shell .focus-learning-bar{grid-template-columns:auto 1fr auto!important;gap:5px!important}
+  .draw-fullscreen-shell .focus-mode-tabs{grid-template-columns:repeat(2,minmax(70px,1fr))!important}
+  .draw-fullscreen-shell .focus-mode-btn{min-width:72px!important;padding:8px 7px!important;font-size:12px!important}
+  .draw-fullscreen-shell .focus-current-word{max-width:36vw!important;padding:7px 10px!important;font-size:12px!important}
+  .draw-fullscreen-shell .focus-exit-btn{padding:8px 9px!important;font-size:12px!important}
+  .draw-fullscreen-shell .palette-dock{top:58px!important}
+  .draw-fullscreen-shell .toolbar{grid-template-columns:1fr!important;width:calc(100vw - 12px)!important;padding:5px!important;gap:4px!important}
+  .draw-fullscreen-shell .brush-control-panel{grid-template-columns:1fr minmax(170px,.52fr)!important;gap:4px!important}
+  .draw-fullscreen-shell .size-row,.draw-fullscreen-shell .opacity-control,.draw-fullscreen-shell .action-row{padding:4px 5px!important}
+  .draw-fullscreen-shell .size-btn{height:34px!important;min-width:34px!important}
+  .draw-fullscreen-shell .action-row button{padding:7px 6px!important;font-size:11px!important;min-height:36px!important}
+  .draw-fullscreen-shell .learn-practice-panel .practice-tabs{top:58px!important}
+}
+@media(max-width:650px){
+  .draw-fullscreen-shell .focus-current-word{display:none!important}
+  .draw-fullscreen-shell .focus-learning-bar{grid-template-columns:auto 1fr!important}
+  .draw-fullscreen-shell .focus-exit-btn{justify-self:end!important}
+  .draw-fullscreen-shell .palette-dock:not(.collapsed){left:4px!important;right:4px!important;top:56px!important;width:auto!important;min-width:0!important;max-height:none!important;overflow:visible!important}
+  .draw-fullscreen-shell .palette-dock:not(.collapsed) .palette-body{display:grid!important;grid-template-columns:1fr!important;gap:6px!important;overflow:visible!important;max-height:none!important}
+  .draw-fullscreen-shell .palette-dock:not(.collapsed) .palette-tools{grid-template-columns:repeat(7,minmax(0,1fr))!important;overflow:visible!important}
+  .draw-fullscreen-shell .palette-dock:not(.collapsed) .palette-colors{grid-template-columns:repeat(10,minmax(0,1fr))!important;overflow:visible!important}
+  .draw-fullscreen-shell .palette-dock:not(.collapsed) .color-chip{width:25px!important;height:25px!important}
+  .draw-fullscreen-shell .brush-control-panel{grid-template-columns:1fr!important}
+  .draw-fullscreen-shell .opacity-control{display:none!important}
+  .draw-fullscreen-shell .toolbar{max-width:100%!important}
+}
+@media(orientation:landscape) and (max-height:620px){
+  .draw-fullscreen-top{top:max(3px,env(safe-area-inset-top))!important}
+  .draw-fullscreen-shell .palette-dock{top:52px!important}
+  .draw-fullscreen-shell .focus-mode-btn{padding:6px 8px!important}
+  .draw-fullscreen-shell .focus-current-word{padding:6px 10px!important}
+  .draw-fullscreen-shell .toolbar{grid-template-columns:minmax(0,1fr) auto!important;padding:4px 6px!important}
+  .draw-fullscreen-shell .brush-control-panel{grid-template-columns:minmax(300px,1fr) minmax(160px,.45fr)!important}
+  .draw-fullscreen-shell .learn-practice-panel .practice-tabs{top:52px!important}
+}

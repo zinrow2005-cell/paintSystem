@@ -1,4 +1,4 @@
-const CACHE_NAME = 'kids-drawing-v1-7-34-fullscreen-shell-20260912-01';
+const CACHE_NAME = 'kids-drawing-v1-7-35-true-fullscreen-20260912-01';
 
 const CORE_ASSETS = [
   './',
