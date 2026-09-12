@@ -1002,6 +1002,22 @@ document.addEventListener('selectionchange',()=>{if(drawFocusMode)clearBrowserSe
 document.addEventListener('pointerdown',()=>{if(drawFocusMode)clearBrowserSelection()},{capture:true});
 document.addEventListener('pointerup',()=>{if(drawFocusMode)clearBrowserSelection()},{capture:true});
 
+
+// V1.7.43｜全系統全面防選取：不只全螢幕，所有頁面都禁止文字反白/圖片拖曳/長按選取。
+function globalNoSelectionGuard(e){
+  if(['selectstart','dragstart','dblclick','contextmenu','gesturestart','gesturechange'].includes(e.type)){
+    e.preventDefault();
+  }
+  clearBrowserSelection();
+}
+['selectstart','dragstart','dblclick','contextmenu','gesturestart','gesturechange'].forEach(type=>{
+  document.addEventListener(type,globalNoSelectionGuard,{capture:true,passive:false});
+});
+document.addEventListener('selectionchange',clearBrowserSelection,{capture:true});
+document.addEventListener('pointerdown',clearBrowserSelection,{capture:true});
+document.addEventListener('pointerup',clearBrowserSelection,{capture:true});
+document.querySelectorAll('img').forEach(img=>{img.draggable=false});
+
 function setupLayerDrawing(canvas){
   let drawing=false,stroke=null,session=0;
   canvas.addEventListener('pointerdown',e=>{
@@ -1356,6 +1372,7 @@ function selectColor(color){
   if(state.tool==='eraser')setTool('pencil')
 }
 let colorWheelHSV={h:0,s:0,v:1},colorWheelDragging=false,colorWheelPointerId=null;
+let colorWheelSelectedHex='#222222',colorWheelPointerPos={x:50,y:50};
 function clamp01(n){return Math.max(0,Math.min(1,Number(n)||0))}
 function hsvToHex(h,s,v){
   h=((Number(h)%360)+360)%360;s=clamp01(s);v=clamp01(v);const c=v*s,x=c*(1-Math.abs((h/60)%2-1)),m=v-c;let r=0,g=0,b=0;
@@ -1366,28 +1383,42 @@ function hexToHsv(hex){
   const m=String(hex||'').trim().match(/^#([0-9a-f]{6})$/i);if(!m)return {h:0,s:0,v:1};const n=parseInt(m[1],16),r=((n>>16)&255)/255,g=((n>>8)&255)/255,b=(n&255)/255,max=Math.max(r,g,b),min=Math.min(r,g,b),d=max-min;let h=0;
   if(d){if(max===r)h=60*(((g-b)/d)%6);else if(max===g)h=60*((b-r)/d+2);else h=60*((r-g)/d+4)}if(h<0)h+=360;return {h,s:max?d/max:0,v:max}
 }
+function rgbBytesToHex(r,g,b){return `#${[r,g,b].map(n=>Math.max(0,Math.min(255,Math.round(n))).toString(16).padStart(2,'0')).join('')}`}
 function drawColorWheel(){
   const canvas=$('#colorWheelCanvas');if(!canvas)return;const ctx=canvas.getContext('2d'),w=canvas.width,h=canvas.height,cx=w/2,cy=h/2,R=Math.min(w,h)/2-2,img=ctx.createImageData(w,h),d=img.data;
   for(let y=0;y<h;y++)for(let x=0;x<w;x++){const dx=x-cx,dy=y-cy,r=Math.hypot(dx,dy),i=(y*w+x)*4;if(r>R){d[i+3]=0;continue}let hue=Math.atan2(dy,dx)*180/Math.PI;if(hue<0)hue+=360;const sat=Math.min(1,r/R),hex=hsvToHex(hue,sat,1),rgb=parseInt(hex.slice(1),16);d[i]=(rgb>>16)&255;d[i+1]=(rgb>>8)&255;d[i+2]=rgb&255;d[i+3]=255}ctx.putImageData(img,0,0)
 }
 function updateColorWheelPointer(){
-  const p=$('#colorWheelPointer'),shell=$('#colorWheelShell');if(!p||!shell)return;const a=colorWheelHSV.h*Math.PI/180,r=colorWheelHSV.s*47;p.style.left=`${50+Math.cos(a)*r}%`;p.style.top=`${50+Math.sin(a)*r}%`;const hex=hsvToHex(colorWheelHSV.h,colorWheelHSV.s,1),preview=$('#colorWheelPreview'),code=$('#colorWheelHex');if(preview)preview.style.background=hex;if(code)code.textContent=hex.toUpperCase()
+  const p=$('#colorWheelPointer');if(p){p.style.left=`${colorWheelPointerPos.x}%`;p.style.top=`${colorWheelPointerPos.y}%`}const hex=colorWheelSelectedHex||state.color||'#222222',preview=$('#colorWheelPreview'),code=$('#colorWheelHex');if(preview)preview.style.background=hex;if(code)code.textContent=String(hex).toUpperCase()
+}
+function setWheelPointerFromHex(hex){
+  colorWheelHSV=hexToHsv(hex);const a=colorWheelHSV.h*Math.PI/180,r=colorWheelHSV.s*47;colorWheelPointerPos={x:50+Math.cos(a)*r,y:50+Math.sin(a)*r};colorWheelSelectedHex=normalizeHexColor(hex)||'#222222';updateColorWheelPointer()
+}
+function sampleWheelAtClient(clientX,clientY){
+  const canvas=$('#colorWheelCanvas');if(!canvas)return null;const rect=canvas.getBoundingClientRect();if(!rect.width||!rect.height)return null;
+  const sx=canvas.width/rect.width,sy=canvas.height/rect.height,cx=canvas.width/2,cy=canvas.height/2,R=Math.min(canvas.width,canvas.height)/2-2;
+  let px=(clientX-rect.left)*sx,py=(clientY-rect.top)*sy,dx=px-cx,dy=py-cy,dist=Math.hypot(dx,dy);
+  if(dist>R&&dist>0){const k=R/dist;px=cx+dx*k;py=cy+dy*k;dx=px-cx;dy=py-cy;dist=R}
+  const ix=Math.max(0,Math.min(canvas.width-1,Math.round(px))),iy=Math.max(0,Math.min(canvas.height-1,Math.round(py)));
+  const data=canvas.getContext('2d',{willReadFrequently:true}).getImageData(ix,iy,1,1).data;if(data[3]===0)return null;
+  let h=Math.atan2(dy,dx)*180/Math.PI;if(h<0)h+=360;colorWheelHSV={h,s:Math.min(1,dist/R),v:1};
+  return {hex:rgbBytesToHex(data[0],data[1],data[2]),x:px/canvas.width*100,y:py/canvas.height*100}
 }
 function setWheelFromPoint(e){
-  const canvas=$('#colorWheelCanvas'),r=canvas.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top,cx=r.width/2,cy=r.height/2,dx=x-cx,dy=y-cy,R=Math.min(r.width,r.height)/2,dist=Math.hypot(dx,dy);colorWheelHSV.s=Math.min(1,dist/R);let h=Math.atan2(dy,dx)*180/Math.PI;if(h<0)h+=360;colorWheelHSV.h=h;colorWheelHSV.v=1;updateColorWheelPointer();selectColor(hsvToHex(colorWheelHSV.h,colorWheelHSV.s,1))
+  const sampled=sampleWheelAtClient(e.clientX,e.clientY);if(!sampled)return;colorWheelSelectedHex=sampled.hex;colorWheelPointerPos={x:sampled.x,y:sampled.y};updateColorWheelPointer();selectColor(sampled.hex)
 }
 function openColorWheel(){
   const overlay=$('#colorWheelPopover');if(!overlay)return;
   const host=(drawFocusMode&&fullscreenShell?.isConnected)?fullscreenShell:document.body;
   if(overlay.parentElement!==host)host.appendChild(overlay);
-  colorWheelHSV=hexToHsv(state.color);colorWheelHSV.v=1;
+  colorWheelSelectedHex=normalizeHexColor(state.color)||'#222222';setWheelPointerFromHex(colorWheelSelectedHex);
   overlay.hidden=false;overlay.removeAttribute('hidden');overlay.classList.add('is-open');overlay.setAttribute('aria-hidden','false');
   document.body.classList.add('color-wheel-open');
   overlay.style.display='grid';overlay.style.visibility='visible';overlay.style.opacity='1';overlay.style.pointerEvents='auto';
   requestAnimationFrame(()=>requestAnimationFrame(()=>{drawColorWheel();updateColorWheelPointer();$('#colorWheelCanvas')?.focus?.()}));
 }
 function closeColorWheel(apply=false){
-  if(apply)selectColor(hsvToHex(colorWheelHSV.h,colorWheelHSV.s,1));
+  if(apply)selectColor(colorWheelSelectedHex);
   colorWheelDragging=false;colorWheelPointerId=null;const overlay=$('#colorWheelPopover');
   if(overlay){overlay.classList.remove('is-open');overlay.hidden=true;overlay.setAttribute('hidden','');overlay.setAttribute('aria-hidden','true');overlay.style.removeProperty('display');overlay.style.removeProperty('visibility');overlay.style.removeProperty('opacity');overlay.style.removeProperty('pointer-events');if(overlay.parentElement!==document.body)document.body.appendChild(overlay)}
   document.body.classList.remove('color-wheel-open');
@@ -1408,7 +1439,7 @@ function setupColorWheel(){
   const legacyOpen=$('#openColorWheelBtn');if(legacyOpen)bindReliableTap(legacyOpen,()=>openColorWheel());
   bindReliableTap($('#closeColorWheelBtn'),()=>closeColorWheel(false));
   bindReliableTap($('#confirmColorWheelBtn'),()=>closeColorWheel(true));
-  bindReliableTap($('#saveWheelColorBtn'),()=>{const hex=hsvToHex(colorWheelHSV.h,colorWheelHSV.s,1);addQuickColor(hex,{select:true,notify:true});closeColorWheel(false)});
+  bindReliableTap($('#saveWheelColorBtn'),()=>{addQuickColor(colorWheelSelectedHex,{select:true,notify:true});closeColorWheel(false)});
   const saveCurrent=$('#saveCurrentColorBtn');if(saveCurrent)bindReliableTap(saveCurrent,()=>addQuickColor(state.color,{select:true,notify:true}));
   const clearCustom=$('#clearCustomColorsBtn');if(clearCustom)bindReliableTap(clearCustom,()=>clearCustomColors());
   const overlay=$('#colorWheelPopover');if(overlay)overlay.addEventListener('pointerdown',e=>{if(e.target===overlay){e.preventDefault();closeColorWheel(false)}},{passive:false});

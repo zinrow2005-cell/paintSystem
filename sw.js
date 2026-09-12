@@ -1,4 +1,4 @@
-const CACHE_NAME = 'kids-drawing-v1-7-41-direct-color-wheel-20260912-01';
+const CACHE_NAME = 'kids-drawing-v1-7-43-global-no-selection-20260912-01';
 
 const CORE_ASSETS = [
   './',
@@ -40,15 +40,18 @@ self.addEventListener('fetch', event => {
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
 
-  if (request.mode === 'navigate') {
+  const isCoreCode = ['index.html','styles.css','app.js','lineart.js','manifest.webmanifest'].some(name => url.pathname.endsWith('/'+name));
+  if (request.mode === 'navigate' || isCoreCode) {
     event.respondWith(
-      fetch(request)
+      fetch(request, {cache:'no-store'})
         .then(response => {
-          const copy = response.clone();
-          caches.open(CACHE_NAME).then(cache => cache.put(request, copy));
+          if (response && response.ok) {
+            const copy = response.clone();
+            caches.open(CACHE_NAME).then(cache => cache.put(request, copy));
+          }
           return response;
         })
-        .catch(() => caches.match('./index.html'))
+        .catch(() => caches.match(request).then(cached => cached || caches.match('./index.html')))
     );
     return;
   }

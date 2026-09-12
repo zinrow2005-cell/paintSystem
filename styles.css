@@ -1234,3 +1234,19 @@ body.draw-focus-mode .color-wheel-overlay{z-index:2147483640!important}
 .direct-color-help{font-size:13px!important;line-height:1.65!important;color:#5e6879!important;background:linear-gradient(180deg,#f7fbff,#fffaf2)!important;border:1px solid #e6e2d8!important}
 .color-wheel-side{align-content:center}
 #confirmColorWheelBtn{min-width:120px}
+
+
+/* V1.7.43｜全系統全面防選取 */
+html,body,body *,body *::before,body *::after{
+  -webkit-user-select:none!important;
+  user-select:none!important;
+  -webkit-touch-callout:none!important;
+  -webkit-user-drag:none!important;
+}
+html::selection,body::selection,body *::selection{
+  background:transparent!important;
+  color:inherit!important;
+}
+img,svg,a{-webkit-user-drag:none!important;user-drag:none!important}
+/* 保留所有控制元件的正常點擊/拖曳；只禁止文字反白。 */
+button,input,select,label,summary,[role="button"]{-webkit-user-select:none!important;user-select:none!important}
