@@ -33,6 +33,8 @@ const STORAGE_LIBRARY_MODE = 'kidsDrawingLibraryModeV1716';
 const STORAGE_GUIDE_STYLE = 'kidsDrawingGuideStyleV172';
 const STORAGE_DETAIL_MODE = 'kidsDrawingDetailModeV174';
 const STORAGE_PALETTE_COLLAPSED = 'kidsDrawingPaletteCollapsedV162';
+const STORAGE_CUSTOM_COLORS = 'kidsDrawingCustomColorsV1738';
+const MAX_CUSTOM_COLORS = 8;
 
 function isSampleTemplate(id){ return SAMPLE_TEMPLATE_IDS.includes(id); }
 function getLibraryMode(){ return localStorage.getItem(STORAGE_LIBRARY_MODE) || 'sample'; }
@@ -41,6 +43,21 @@ function getGuideStyle(){ const saved=localStorage.getItem(STORAGE_GUIDE_STYLE);
 function saveGuideStyle(style){ localStorage.setItem(STORAGE_GUIDE_STYLE, style==='outline'?'outline':'color'); }
 function getDetailMode(){ return 'simple'; }
 function saveDetailMode(mode){ return 'simple'; }
+
+function normalizeHexColor(value){
+  const m=String(value||'').trim().match(/^#([0-9a-f]{6})$/i);
+  return m?`#${m[1].toLowerCase()}`:null;
+}
+function loadCustomColors(){
+  try{
+    const list=JSON.parse(localStorage.getItem(STORAGE_CUSTOM_COLORS)||'[]');
+    if(!Array.isArray(list))return [];
+    const seen=new Set();
+    return list.map(normalizeHexColor).filter(c=>c&&!COLORS.includes(c)&&!seen.has(c)&&seen.add(c)).slice(0,MAX_CUSTOM_COLORS);
+  }catch{return []}
+}
+function persistCustomColors(){localStorage.setItem(STORAGE_CUSTOM_COLORS,JSON.stringify(customColors))}
+let customColors=loadCustomColors();
 
 const svgWrap = body => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" fill="none" stroke="#3a3a3a" stroke-width="14" stroke-linecap="round" stroke-linejoin="round">${body}</svg>`;
 const templates = [
@@ -975,6 +992,16 @@ function protectDrawingSurface(el){
 protectDrawingSurface($('#canvasWrap'));
 protectDrawingSurface($('.practice-wrap'));
 
+function fullscreenSelectionGuard(e){
+  if(!drawFocusMode)return;
+  if(['selectstart','dragstart','dblclick','contextmenu','gesturestart','gesturechange'].includes(e.type))e.preventDefault();
+  clearBrowserSelection();
+}
+['selectstart','dragstart','dblclick','contextmenu','gesturestart','gesturechange'].forEach(type=>document.addEventListener(type,fullscreenSelectionGuard,{capture:true,passive:false}));
+document.addEventListener('selectionchange',()=>{if(drawFocusMode)clearBrowserSelection()});
+document.addEventListener('pointerdown',()=>{if(drawFocusMode)clearBrowserSelection()},{capture:true});
+document.addEventListener('pointerup',()=>{if(drawFocusMode)clearBrowserSelection()},{capture:true});
+
 function setupLayerDrawing(canvas){
   let drawing=false,stroke=null,session=0;
   canvas.addEventListener('pointerdown',e=>{
@@ -1350,14 +1377,25 @@ function setWheelFromPoint(e){
   const canvas=$('#colorWheelCanvas'),r=canvas.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top,cx=r.width/2,cy=r.height/2,dx=x-cx,dy=y-cy,R=Math.min(r.width,r.height)/2,dist=Math.hypot(dx,dy);colorWheelHSV.s=Math.min(1,dist/R);let h=Math.atan2(dy,dx)*180/Math.PI;if(h<0)h+=360;colorWheelHSV.h=h;updateColorWheelPointer()
 }
 function openColorWheel(){
-  const overlay=$('#colorWheelPopover');colorWheelHSV=hexToHsv(state.color);if(colorWheelHSV.v<.2)colorWheelHSV.v=.2;overlay.hidden=false;overlay.setAttribute('aria-hidden','false');requestAnimationFrame(()=>{drawColorWheel();updateColorWheelPointer()})
+  const overlay=$('#colorWheelPopover');if(!overlay)return;
+  if(overlay.parentElement!==document.body)document.body.appendChild(overlay);
+  colorWheelHSV=hexToHsv(state.color);if(colorWheelHSV.v<.2)colorWheelHSV.v=.2;
+  overlay.hidden=false;overlay.setAttribute('aria-hidden','false');document.body.classList.add('color-wheel-open');
+  requestAnimationFrame(()=>{drawColorWheel();updateColorWheelPointer();$('#colorWheelCanvas')?.focus?.()})
 }
 function closeColorWheel(apply=false){
-  if(apply)selectColor(hsvToHex(colorWheelHSV.h,colorWheelHSV.s,colorWheelHSV.v));colorWheelDragging=false;colorWheelPointerId=null;const overlay=$('#colorWheelPopover');overlay.hidden=true;overlay.setAttribute('aria-hidden','true')
+  if(apply)selectColor(hsvToHex(colorWheelHSV.h,colorWheelHSV.s,colorWheelHSV.v));colorWheelDragging=false;colorWheelPointerId=null;const overlay=$('#colorWheelPopover');if(overlay){overlay.hidden=true;overlay.setAttribute('aria-hidden','true')}document.body.classList.remove('color-wheel-open')
 }
 function setupColorWheel(){
   const canvas=$('#colorWheelCanvas');if(!canvas)return;canvas.addEventListener('pointerdown',e=>{if(colorWheelPointerId!==null)return;e.preventDefault();colorWheelDragging=true;colorWheelPointerId=e.pointerId;try{canvas.setPointerCapture(e.pointerId)}catch{};setWheelFromPoint(e)});canvas.addEventListener('pointermove',e=>{if(!colorWheelDragging||colorWheelPointerId!==e.pointerId)return;e.preventDefault();setWheelFromPoint(e)});const end=e=>{if(colorWheelPointerId!==e.pointerId)return;colorWheelDragging=false;colorWheelPointerId=null};canvas.addEventListener('pointerup',end);canvas.addEventListener('pointercancel',end);canvas.addEventListener('lostpointercapture',end);
-  $('#colorBrightnessRange').oninput=e=>{colorWheelHSV.v=Math.max(.2,Math.min(1,Number(e.target.value)/100));updateColorWheelPointer()};$('#openColorWheelBtn').onclick=openColorWheel;$('#closeColorWheelBtn').onclick=()=>closeColorWheel(false);$('#confirmColorWheelBtn').onclick=()=>closeColorWheel(true);$('#colorWheelPopover').addEventListener('pointerdown',e=>{if(e.target===$('#colorWheelPopover'))closeColorWheel(false)})
+  $('#colorBrightnessRange').oninput=e=>{colorWheelHSV.v=Math.max(.2,Math.min(1,Number(e.target.value)/100));updateColorWheelPointer()};
+  $('#openColorWheelBtn').onclick=e=>{e?.preventDefault?.();openColorWheel()};
+  $('#closeColorWheelBtn').onclick=()=>closeColorWheel(false);
+  $('#confirmColorWheelBtn').onclick=()=>closeColorWheel(true);
+  const saveWheel=$('#saveWheelColorBtn');if(saveWheel)saveWheel.onclick=()=>{const hex=hsvToHex(colorWheelHSV.h,colorWheelHSV.s,colorWheelHSV.v);addQuickColor(hex,{select:true,notify:true});closeColorWheel(false)};
+  const saveCurrent=$('#saveCurrentColorBtn');if(saveCurrent)saveCurrent.onclick=()=>addQuickColor(state.color,{select:true,notify:true});
+  const clearCustom=$('#clearCustomColorsBtn');if(clearCustom)clearCustom.onclick=clearCustomColors;
+  $('#colorWheelPopover').addEventListener('pointerdown',e=>{if(e.target===$('#colorWheelPopover'))closeColorWheel(false)})
 }
 
 let drawFocusMode=false,focusPaletteRestore=false,focusLearningPane='draw';
@@ -1485,20 +1523,34 @@ function bindDrawFullscreenButton(){
   const btn=$('#drawFullscreenBtn');if(!btn)return;btn.style.touchAction='manipulation';btn.addEventListener('click',e=>{e.preventDefault();setDrawFullscreen(!drawFocusMode)});
   const exit=$('#focusExitBtn');if(exit){exit.style.touchAction='manipulation';exit.addEventListener('click',e=>{e.preventDefault();exitDrawFullscreen()})}
 }
+function addQuickColor(color,{select=true,notify=true}={}){
+  const hex=normalizeHexColor(color);if(!hex)return false;
+  if(COLORS.includes(hex)){if(select)selectColor(hex);if(notify)toast('這個顏色已在固定顏色中');return false}
+  customColors=customColors.filter(c=>c!==hex);customColors.unshift(hex);
+  if(customColors.length>MAX_CUSTOM_COLORS)customColors=customColors.slice(0,MAX_CUSTOM_COLORS);
+  persistCustomColors();if(select)state.color=hex;renderPalette();if(notify)toast('已加入我的顏色');return true
+}
+function clearCustomColors(){
+  customColors=[];persistCustomColors();renderPalette();toast('已清除自訂顏色');
+}
 function renderPalette(){
-  $('#colorRow').innerHTML=COLORS.map(c=>`<button class="color-chip ${c===state.color?'active':''}" data-color="${c}" style="background:${c}" aria-label="選擇顏色 ${c}"></button>`).join('');
+  const fixed=$('#colorRow'),custom=$('#customColorRow'),section=$('#customColorSection');
+  if(fixed)fixed.innerHTML=COLORS.map(c=>`<button class="color-chip ${c===state.color?'active':''}" data-color="${c}" style="background:${c}" aria-label="選擇固定顏色 ${c}"></button>`).join('');
+  if(custom)custom.innerHTML=customColors.map(c=>`<button class="color-chip custom-color-chip ${c===state.color?'active':''}" data-color="${c}" style="background:${c}" aria-label="選擇我的顏色 ${c}"></button>`).join('');
+  if(section)section.hidden=!customColors.length;
   $$('.color-chip').forEach(b=>b.onclick=()=>selectColor(b.dataset.color));
-  selectColor(state.color);
+  const sw=$('#currentColorSwatch');if(sw)sw.style.background=state.color;
+  $$('.color-chip').forEach(x=>x.classList.toggle('active',x.dataset.color.toLowerCase()===String(state.color).toLowerCase()));
 }
 function defaultPaletteCollapsed(){const saved=localStorage.getItem(STORAGE_PALETTE_COLLAPSED);if(saved!==null)return saved==='1';return matchMedia('(max-width:650px)').matches}
 function setPaletteCollapsed(collapsed,persist=true){
   state.paletteCollapsed=!!collapsed;const dock=$('#paletteDock'),btn=$('#paletteToggleBtn');dock.classList.toggle('collapsed',state.paletteCollapsed);btn.setAttribute('aria-expanded',String(!state.paletteCollapsed));btn.innerHTML=state.paletteCollapsed?'🎨<span>展開</span>':'🎨<span>收合</span>';if(persist)localStorage.setItem(STORAGE_PALETTE_COLLAPSED,state.paletteCollapsed?'1':'0');
 }
-renderPalette();setupColorWheel();state.paletteCollapsed=defaultPaletteCollapsed();setPaletteCollapsed(state.paletteCollapsed,false);$('#paletteToggleBtn').onclick=()=>{setPaletteCollapsed(!state.paletteCollapsed);setTimeout(()=>{if($('#drawView').classList.contains('active'))resizeMainCanvases(true)},190)};
+renderPalette();setupColorWheel();state.paletteCollapsed=defaultPaletteCollapsed();setPaletteCollapsed(state.paletteCollapsed,false);$('#paletteToggleBtn').onclick=()=>{const opening=state.paletteCollapsed;if(opening&&matchMedia('(max-width:650px)').matches)$$('.compact-tool-panel').forEach(p=>p.open=false);setPaletteCollapsed(!state.paletteCollapsed);setTimeout(()=>{if($('#drawView').classList.contains('active'))resizeMainCanvases(true)},190)};
 $$('.focus-mode-btn').forEach(b=>b.addEventListener('click',()=>{if(drawFocusMode)setFocusLearningPane(b.dataset.focusPane)}));
 bindDrawFullscreenButton();
 const fullscreenBrushToggle=$('#fullscreenBrushToggle');if(fullscreenBrushToggle)fullscreenBrushToggle.addEventListener('click',e=>{e.preventDefault();const shell=$('#drawFullscreenShell');if(!shell)return;setFullscreenBrushControlsCollapsed(!shell.classList.contains('brush-controls-collapsed'))});
-$$('.compact-tool-panel').forEach(panel=>panel.addEventListener('toggle',()=>{if(panel.open)$$('.compact-tool-panel').forEach(other=>{if(other!==panel)other.open=false})}));
+$$('.compact-tool-panel').forEach(panel=>panel.addEventListener('toggle',()=>{if(panel.open){$$('.compact-tool-panel').forEach(other=>{if(other!==panel)other.open=false});if(matchMedia('(max-width:650px)').matches&&!state.paletteCollapsed)setPaletteCollapsed(true)}}));
 
 let holdTimer=null;const parentBtn=$('#parentBtn');const beginHold=e=>{e.preventDefault();clearTimeout(holdTimer);holdTimer=setTimeout(()=>openParent(),1200)};const endHold=()=>clearTimeout(holdTimer);parentBtn.addEventListener('pointerdown',beginHold);['pointerup','pointercancel','pointerleave'].forEach(ev=>parentBtn.addEventListener(ev,endHold));
 $('#closeParentBtn').onclick=closeParent;$('#closeParentBottomBtn').onclick=closeParent;$('#parentModal').onclick=e=>{if(e.target===$('#parentModal'))closeParent()};

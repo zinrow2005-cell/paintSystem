@@ -1125,3 +1125,64 @@ body.draw-focus-mode{overflow:hidden!important;background:#fffaf1!important}
   .draw-fullscreen-shell.focus-pane-practice .learn-practice-panel .practice-tabs{top:max(50px,calc(env(safe-area-inset-top) + 48px))!important;width:calc(100% - 16px)!important}
   .draw-fullscreen-shell.focus-pane-practice .learn-practice-panel .practice-actions{width:calc(100% - 16px)!important}
 }
+
+
+/* V1.7.38｜全螢幕選色修正、自訂快速色、全面禁止選取 */
+.palette-color-actions{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.save-current-color-btn,.clear-custom-colors-btn{border:0;cursor:pointer;font-weight:1000;touch-action:manipulation}
+.save-current-color-btn{min-height:38px;padding:8px 7px;border-radius:13px;background:linear-gradient(180deg,#fff7e9,#ffe8c7);color:#8a5b20;font-size:11px;box-shadow:0 5px 12px rgba(91,65,28,.08)}
+.custom-color-section{display:grid;gap:6px;padding-top:2px}
+.custom-color-section[hidden]{display:none!important}
+.custom-color-head{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:11px;font-weight:1000;color:#62584d}
+.clear-custom-colors-btn{padding:4px 8px;border-radius:999px;background:#f2f3f5;color:#6f6a65;font-size:9px}
+.custom-color-row{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;justify-items:center}
+.custom-color-row .color-chip{width:30px;height:30px}
+.color-wheel-actions{display:grid;grid-template-columns:1fr;gap:8px}
+
+/* 全螢幕色盤一定高於全螢幕 shell，避免點擊被 shell 擋住 */
+body.draw-focus-mode .color-wheel-overlay,body.color-wheel-open .color-wheel-overlay{
+  position:fixed!important;inset:0!important;z-index:2147483600!important;pointer-events:auto!important;touch-action:none!important;
+}
+body.draw-focus-mode .color-wheel-card,body.color-wheel-open .color-wheel-card{pointer-events:auto!important;position:relative!important;z-index:1!important}
+body.draw-focus-mode .color-wheel-shell canvas,body.color-wheel-open .color-wheel-shell canvas{pointer-events:auto!important;touch-action:none!important}
+body.draw-focus-mode .toast{z-index:2147483646!important}
+
+/* 全螢幕時任何文字、圖片、控制標籤都不可被反白／拖曳／長按選取 */
+body.draw-focus-mode,body.draw-focus-mode *,#drawFullscreenShell,#drawFullscreenShell *{
+  -webkit-user-select:none!important;user-select:none!important;
+  -webkit-touch-callout:none!important;-webkit-user-drag:none!important;
+  -webkit-tap-highlight-color:transparent!important;
+}
+body.draw-focus-mode ::selection,#drawFullscreenShell ::selection{background:transparent!important;color:inherit!important}
+#drawFullscreenShell img{draggable:false;-webkit-user-drag:none!important;user-drag:none!important}
+#drawFullscreenShell .canvas-wrap,#drawFullscreenShell .canvas-wrap canvas,#drawFullscreenShell .practice-wrap,#drawFullscreenShell .practice-wrap canvas{touch-action:none!important}
+
+/* 全螢幕調色盤：固定色＋我的顏色都完整顯示，不用左右拖 */
+.draw-fullscreen-shell .palette-color-actions{grid-template-columns:1fr 1fr!important;gap:5px!important}
+.draw-fullscreen-shell .custom-color-row{grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:5px!important}
+.draw-fullscreen-shell .custom-color-row .color-chip{width:27px!important;height:27px!important}
+@media(max-width:650px){
+  .draw-fullscreen-shell .palette-dock:not(.collapsed) .custom-color-row{grid-template-columns:repeat(8,minmax(0,1fr))!important;gap:3px!important}
+  .draw-fullscreen-shell .palette-dock:not(.collapsed) .custom-color-row .color-chip{width:25px!important;height:25px!important;min-width:25px!important}
+  .draw-fullscreen-shell .palette-dock:not(.collapsed) .palette-color-actions{grid-template-columns:1fr 1fr!important}
+  .draw-fullscreen-shell .palette-dock:not(.collapsed) .save-current-color-btn,.draw-fullscreen-shell .palette-dock:not(.collapsed) .open-color-wheel-btn{min-height:34px!important;padding:6px 5px!important;font-size:9px!important}
+}
+
+
+/* V1.7.39｜完整操作回歸：手機收合工具與調色盤避免互相遮擋 */
+@media(max-width:650px){
+  .compact-tool-body{position:relative!important;left:auto!important;right:auto!important;z-index:auto!important;padding:6px 0 0!important;}
+  .compact-tool-panel[open]{overflow:visible!important;}
+  .compact-tool-panel[open] .compact-tool-body{display:block!important;}
+  .canvas-stage{position:relative!important;z-index:1!important;}
+  .palette-dock{z-index:22!important;}
+}
+
+/* V1.7.39｜手機一般畫板：展開調色盤改為正常佔列，避免 Header 遮住收合鍵 */
+@media(max-width:650px){
+  body:not(.draw-focus-mode) .canvas-stage .palette-dock:not(.collapsed){
+    position:relative!important;left:auto!important;right:auto!important;top:auto!important;
+    width:100%!important;min-width:0!important;max-width:none!important;max-height:none!important;
+    overflow:visible!important;z-index:2!important;margin:0 0 8px!important;
+  }
+}
