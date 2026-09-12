@@ -674,6 +674,7 @@ async function openTemplate(id){
   $('#wordKK').textContent=state.current.kk;
   $('#wordZh').textContent=state.current.zh;
   $('#wordZhuyin').textContent=state.current.zhuyin;
+  updateFocusCurrentLabel();
   state.guideOpacity=normalizeGuideOpacity(settings.guideOpacity);
   resetLayersToDefaults();
   state.activeLayer=traceLayerIndex();
@@ -958,9 +959,21 @@ function eraseSegmentAllLayers(stroke,p,width){
   });
   stroke.mid=mid;stroke.last=p;stroke.lastWidth=width;
 }
+
+function clearBrowserSelection(){try{const s=window.getSelection?.();if(s&&s.rangeCount)s.removeAllRanges()}catch{}}
+function protectDrawingSurface(el){
+  if(!el)return;
+  ['selectstart','dragstart','dblclick','contextmenu'].forEach(type=>el.addEventListener(type,e=>{e.preventDefault();clearBrowserSelection()},{capture:true}));
+  el.addEventListener('pointerdown',()=>clearBrowserSelection(),{capture:true});
+  el.addEventListener('gesturestart',e=>{e.preventDefault?.()},{capture:true});
+}
+protectDrawingSurface($('#canvasWrap'));
+protectDrawingSurface($('.practice-wrap'));
+
 function setupLayerDrawing(canvas){
   let drawing=false,stroke=null,session=0;
   canvas.addEventListener('pointerdown',e=>{
+    clearBrowserSelection();
     const index=+canvas.dataset.layer;if(index!==state.activeLayer||ignoreTouch(e))return;e.preventDefault();if(state.layerLocked[index]){toast('🔒 這個圖層已鎖定，請先解鎖');return}
     if(state.activePointer!==null&&state.activePointer!==e.pointerId)return;
     if(drawing)return;
@@ -1043,55 +1056,92 @@ async function resizePracticeCanvases(preserve=false){
   if(old){try{const img=await dataUrlToImage(old);pctx.drawImage(img,0,0,r.width,r.height)}catch{}}
   return true;
 }
+function spacedTextWidth(ctx,text,tracking){
+  const chars=[...String(text)];let w=0;
+  chars.forEach((ch,i)=>{w+=ctx.measureText(ch).width;if(i<chars.length-1)w+=ch===' '?tracking*1.8:tracking});
+  return w;
+}
+function fitSpacedText(ctx,text,maxWidth,maxSize,minSize,trackingRatio=.12,fontFamily='ui-rounded, sans-serif'){
+  let fs=maxSize,tracking=Math.max(2,fs*trackingRatio);
+  for(;fs>minSize;fs-=1){ctx.font=`700 ${fs}px ${fontFamily}`;tracking=Math.max(2,fs*trackingRatio);if(spacedTextWidth(ctx,text,tracking)<=maxWidth)break}
+  ctx.font=`700 ${fs}px ${fontFamily}`;return {fs,tracking};
+}
+function drawCenteredSpacedText(ctx,text,cx,y,tracking){
+  const chars=[...String(text)],total=spacedTextWidth(ctx,text,tracking);let x=cx-total/2;
+  ctx.textAlign='left';
+  chars.forEach((ch,i)=>{const m=ctx.measureText(ch).width;ctx.fillText(ch,x,y);x+=m;if(i<chars.length-1)x+=ch===' '?tracking*1.8:tracking});
+  ctx.textAlign='center';
+}
 function drawPracticeGuide(){
   if(!state.current)return;const r=practiceGuide.getBoundingClientRect();clearCanvasPixels(practiceGuide,pgctx);pgctx.save();pgctx.lineWidth=1;pgctx.textAlign='center';pgctx.textBaseline='middle';
   const alpha=state.practiceStage===0?.23:state.practiceStage===1?.10:0;
   if(state.practiceMode==='en'){
     pgctx.strokeStyle='#bfc8d1';[r.height*.18,r.height*.38,r.height*.62,r.height*.82].forEach((y,i)=>{pgctx.setLineDash(i===1||i===2?[5,6]:[]);pgctx.beginPath();pgctx.moveTo(8,y);pgctx.lineTo(r.width-8,y);pgctx.stroke()});pgctx.setLineDash([]);
-    const txt=state.current.en.toLowerCase();
-    let fs=Math.min(58,r.height*.36);pgctx.font=`700 ${fs}px ui-rounded, sans-serif`;
-    const maxW=r.width*.88,measured=pgctx.measureText(txt).width;if(measured>maxW){fs=Math.max(24,fs*(maxW/measured));pgctx.font=`700 ${fs}px ui-rounded, sans-serif`}
-    pgctx.fillStyle=`rgba(60,70,80,${alpha})`;if(alpha)pgctx.fillText(txt,r.width*.5,r.height*.5);
+    const txt=state.current.en.toLowerCase(),maxW=r.width*.90;
+    const fitted=fitSpacedText(pgctx,txt,maxW,Math.min(66,r.height*.39),25,.14,'ui-rounded, sans-serif');
+    pgctx.fillStyle=`rgba(60,70,80,${alpha})`;if(alpha)drawCenteredSpacedText(pgctx,txt,r.width*.5,r.height*.5,fitted.tracking);
   }else if(state.practiceMode==='zh'){
     const chars=[...state.current.zh],cols=Math.max(1,chars.length),gap=6,cell=Math.min((r.width-gap*(cols+1))/cols,(r.height-gap*3)/2),gridW=cell*cols+gap*(cols-1),sx=(r.width-gridW)/2;
     for(let row=0;row<2;row++)for(let i=0;i<cols;i++){const x=sx+i*(cell+gap),y=gap+row*(cell+gap);pgctx.strokeStyle='#cfc7b7';pgctx.strokeRect(x,y,cell,cell);pgctx.save();pgctx.setLineDash([4,4]);pgctx.strokeStyle='#dfd7ca';pgctx.beginPath();pgctx.moveTo(x+cell/2,y);pgctx.lineTo(x+cell/2,y+cell);pgctx.moveTo(x,y+cell/2);pgctx.lineTo(x+cell,y+cell/2);pgctx.moveTo(x,y);pgctx.lineTo(x+cell,y+cell);pgctx.moveTo(x+cell,y);pgctx.lineTo(x,y+cell);pgctx.stroke();pgctx.restore();if((row===0&&state.practiceStage<2)||(row===1&&state.practiceStage===0)){pgctx.font=`700 ${cell*.74}px "PingFang TC","Microsoft JhengHei",sans-serif`;pgctx.fillStyle=row===0?`rgba(70,70,70,${alpha})`:'rgba(70,70,70,.09)';pgctx.fillText(chars[i],x+cell/2,y+cell/2)}}
   }else{
-    const syllables=state.current.zhuyin.split(/\s+/).filter(Boolean),cols=Math.max(1,syllables.length),gap=6,cellW=Math.min(95,(r.width-gap*(cols+1))/cols),cellH=(r.height-gap*3)/2,gridW=cellW*cols+gap*(cols-1),sx=(r.width-gridW)/2;
-    for(let row=0;row<2;row++)for(let i=0;i<cols;i++){const x=sx+i*(cellW+gap),y=gap+row*(cellH+gap);pgctx.strokeStyle='#c9c3b9';pgctx.strokeRect(x,y,cellW,cellH);pgctx.save();pgctx.setLineDash([4,4]);pgctx.strokeStyle='#ddd7cc';pgctx.beginPath();pgctx.moveTo(x,y+cellH/2);pgctx.lineTo(x+cellW,y+cellH/2);pgctx.stroke();pgctx.restore();if((row===0&&state.practiceStage<2)||(row===1&&state.practiceStage===0)){pgctx.font=`700 ${Math.min(40,cellH*.56)}px "PingFang TC","Microsoft JhengHei",sans-serif`;pgctx.fillStyle=row===0?`rgba(70,70,70,${alpha})`:'rgba(70,70,70,.09)';pgctx.fillText(syllables[i],x+cellW/2,y+cellH/2)}}
+    const syllables=state.current.zhuyin.split(/\s+/).filter(Boolean),cols=Math.max(1,syllables.length),gap=Math.max(8,Math.min(14,r.width*.025)),cellW=Math.min(110,(r.width-gap*(cols+1))/cols),cellH=(r.height-gap*3)/2,gridW=cellW*cols+gap*(cols-1),sx=(r.width-gridW)/2;
+    for(let row=0;row<2;row++)for(let i=0;i<cols;i++){
+      const x=sx+i*(cellW+gap),y=gap+row*(cellH+gap),syllable=syllables[i];pgctx.strokeStyle='#c9c3b9';pgctx.strokeRect(x,y,cellW,cellH);pgctx.save();pgctx.setLineDash([4,4]);pgctx.strokeStyle='#ddd7cc';pgctx.beginPath();pgctx.moveTo(x,y+cellH/2);pgctx.lineTo(x+cellW,y+cellH/2);pgctx.stroke();pgctx.restore();
+      if((row===0&&state.practiceStage<2)||(row===1&&state.practiceStage===0)){
+        const fitted=fitSpacedText(pgctx,syllable,cellW*.82,Math.min(46,cellH*.58),22,.08,'"PingFang TC","Microsoft JhengHei",sans-serif');
+        pgctx.fillStyle=row===0?`rgba(70,70,70,${alpha})`:'rgba(70,70,70,.09)';drawCenteredSpacedText(pgctx,syllable,x+cellW/2,y+cellH/2,fitted.tracking);
+      }
+    }
   }pgctx.restore();
 }
 
 function setupPractice(){
   let drawing=false,pid=null,stroke=null;
-  practiceCanvas.addEventListener('pointerdown',e=>{if(ignoreTouch(e))return;if(drawing||pid!==null)return;e.preventDefault();drawing=true;pid=e.pointerId;try{practiceCanvas.setPointerCapture?.(pid)}catch{};const p=pointerPos(e,practiceCanvas),w=Math.max(4,dynamicBrushWidth(e,0)*.72);stroke={last:p,mid:p,lastWidth:w,lastTime:e.timeStamp||performance.now()};drawBrushDot(pctx,p,w)});
+  practiceCanvas.addEventListener('pointerdown',e=>{clearBrowserSelection();if(ignoreTouch(e))return;if(drawing||pid!==null)return;e.preventDefault();drawing=true;pid=e.pointerId;try{practiceCanvas.setPointerCapture?.(pid)}catch{};const p=pointerPos(e,practiceCanvas),w=Math.max(4,dynamicBrushWidth(e,0)*.72);stroke={last:p,mid:p,lastWidth:w,lastTime:e.timeStamp||performance.now()};drawBrushDot(pctx,p,w)});
   practiceCanvas.addEventListener('pointermove',e=>{if(!drawing||e.pointerId!==pid||ignoreTouch(e))return;e.preventDefault();const events=e.getCoalescedEvents?e.getCoalescedEvents():[e];for(const ev of events){const p=pointerPos(ev,practiceCanvas),now=ev.timeStamp||performance.now(),dt=Math.max(4,now-stroke.lastTime),dist=Math.hypot(p.x-stroke.last.x,p.y-stroke.last.y),velocity=dist/dt;if(dist<.25)continue;const raw=Math.max(4,dynamicBrushWidth(ev,velocity)*.72),w=stroke.lastWidth*.68+raw*.32;drawBrushSegment(pctx,stroke,p,w);stroke.lastTime=now}});
   const end=e=>{if(!drawing||e.pointerId!==pid)return;finishBrushStroke(pctx,stroke);drawing=false;pid=null;stroke=null};practiceCanvas.addEventListener('pointerup',end);practiceCanvas.addEventListener('pointercancel',end);practiceCanvas.addEventListener('lostpointercapture',end)
 }
 setupPractice();
 
-function pickVoice(lang){
-  const voices=speechSynthesis.getVoices(),want=lang.toLowerCase(),base=want.split('-')[0];
-  const exact=voices.filter(v=>v.lang.toLowerCase()===want),prefix=voices.filter(v=>v.lang.toLowerCase().startsWith(base));
-  const pool=exact.length?exact:prefix;
-  if(base==='zh'){
-    const preferred=['mei-jia','meijia','美佳','ting-ting','tingting','曉臻','xiaozhen','hsiaochen'];
-    const hit=pool.find(v=>preferred.some(n=>v.name.toLowerCase().includes(n)));if(hit)return hit;
-    const local=pool.find(v=>v.localService);if(local)return local;
+let speechRunToken=0;
+const ENGLISH_VOICE_PREFERRED=['samantha','ava','alex','allison','google us english','microsoft aria','microsoft jenny','zira','guy','joanna'];
+const NOVELTY_VOICE_NAMES=['albert','bad news','bahh','bells','boing','bubbles','cellos','good news','jester','organ','superstar','trinoids','whisper','zarvox'];
+function cleanEnglishSpeechText(text){return String(text||'').replace(/[‐‑–—-]+/g,' ').replace(/\s+/g,' ').trim()}
+function voiceScore(v,lang){
+  const want=lang.toLowerCase(),base=want.split('-')[0],vl=(v.lang||'').toLowerCase(),name=(v.name||'').toLowerCase();let score=0;
+  if(vl===want)score+=100;else if(vl.startsWith(base+'-')||vl===base)score+=55;else return -999;
+  if(v.localService)score+=10;
+  if(base==='en'){
+    const pref=ENGLISH_VOICE_PREFERRED.findIndex(n=>name.includes(n));if(pref>=0)score+=45-pref;
+    if(NOVELTY_VOICE_NAMES.some(n=>name.includes(n)))score-=120;
+    if(/english|samantha|ava|alex|allison|aria|jenny|zira|joanna/.test(name))score+=8;
   }
-  return pool[0]||null;
+  if(base==='zh'&&/mei-jia|meijia|美佳|ting-ting|tingting|曉臻|xiaozhen|hsiaochen/.test(name))score+=35;
+  return score;
 }
-function speak(text,lang,rate=.75,{volume=1,pitch=1.02}={}){
+function pickVoice(lang,voices=speechSynthesis.getVoices()){
+  return [...voices].map(v=>({v,s:voiceScore(v,lang)})).filter(x=>x.s>-900).sort((a,b)=>b.s-a.s)[0]?.v||null;
+}
+function ensureSpeechVoices(timeout=1200){
+  if(!('speechSynthesis'in window))return Promise.resolve([]);
+  const now=speechSynthesis.getVoices();if(now.length)return Promise.resolve(now);
+  return new Promise(resolve=>{let done=false;const finish=()=>{if(done)return;done=true;try{speechSynthesis.removeEventListener?.('voiceschanged',onvoices)}catch{};resolve(speechSynthesis.getVoices())};const onvoices=()=>{if(speechSynthesis.getVoices().length)finish()};speechSynthesis.addEventListener?.('voiceschanged',onvoices,{once:true});setTimeout(finish,timeout);speechSynthesis.getVoices()});
+}
+async function speak(text,lang,rate=.75,{volume=1,pitch=1.02}={}){
   if(!('speechSynthesis'in window)){toast('這台裝置不支援語音播放');return}
-  speechSynthesis.cancel();try{speechSynthesis.resume()}catch{}
-  const u=new SpeechSynthesisUtterance(text);u.lang=lang;u.rate=rate;u.pitch=pitch;u.volume=Math.max(0,Math.min(1,volume));u.voice=pickVoice(lang);speechSynthesis.speak(u)
+  const token=++speechRunToken;speechSynthesis.cancel();try{speechSynthesis.resume()}catch{}
+  const voices=await ensureSpeechVoices();if(token!==speechRunToken)return;
+  const spoken=lang.toLowerCase().startsWith('en')?cleanEnglishSpeechText(text):String(text||'').trim();if(!spoken)return;
+  const u=new SpeechSynthesisUtterance(spoken);u.lang=lang;u.rate=rate;u.pitch=pitch;u.volume=Math.max(0,Math.min(1,volume));const voice=pickVoice(lang,voices);if(voice&&voice.lang.toLowerCase().startsWith(lang.split('-')[0].toLowerCase()))u.voice=voice;
+  speechSynthesis.cancel();speechSynthesis.speak(u)
 }
-function speakChineseChars(text){
+async function speakChineseChars(text){
   if(!('speechSynthesis'in window)){toast('這台裝置不支援語音播放');return}
-  const chars=[...String(text)].filter(ch=>!/\s|[・，。、]/.test(ch));if(!chars.length)return;
-  speechSynthesis.cancel();try{speechSynthesis.resume()}catch{};let i=0;
-  const next=()=>{if(i>=chars.length)return;const u=new SpeechSynthesisUtterance(chars[i++]);u.lang='zh-TW';u.rate=.54;u.pitch=.96;u.volume=1;u.voice=pickVoice('zh-TW');u.onend=()=>setTimeout(next,150);speechSynthesis.speak(u)};next()
+  const token=++speechRunToken,chars=[...String(text)].filter(ch=>!(/\s|[・，。、]/).test(ch));if(!chars.length)return;
+  speechSynthesis.cancel();try{speechSynthesis.resume()}catch{};const voices=await ensureSpeechVoices();if(token!==speechRunToken)return;const voice=pickVoice('zh-TW',voices);let i=0;
+  const next=()=>{if(token!==speechRunToken||i>=chars.length)return;const u=new SpeechSynthesisUtterance(chars[i++]);u.lang='zh-TW';u.rate=.54;u.pitch=.96;u.volume=1;if(voice)u.voice=voice;u.onend=()=>{if(token===speechRunToken)setTimeout(next,150)};speechSynthesis.speak(u)};next()
 }
-if('speechSynthesis'in window){speechSynthesis.getVoices();speechSynthesis.onvoiceschanged=()=>speechSynthesis.getVoices();}
+if('speechSynthesis'in window){speechSynthesis.getVoices();speechSynthesis.addEventListener?.('voiceschanged',()=>speechSynthesis.getVoices());}
 
 async function mergedImage(){const {w,h}=canvasCssSize();const c=document.createElement('canvas');c.width=Math.round(w*2);c.height=Math.round(h*2);const x=c.getContext('2d');x.scale(2,2);x.fillStyle='#fffdf9';x.fillRect(0,0,w,h);if(state.current&&state.guideOpacity>0){const guide=await currentGuideImage();x.save();x.globalAlpha=state.guideOpacity;x.drawImage(guide,0,0,w,h);x.restore()}drawCanvases.forEach((layer,i)=>{if(state.layerVisible[i])x.drawImage(layer,0,0,w,h)});return c.toDataURL('image/png')}
 function db(){return new Promise((res,rej)=>{const q=indexedDB.open('kidsDrawingDB',2);q.onupgradeneeded=()=>{if(!q.result.objectStoreNames.contains('works'))q.result.createObjectStore('works',{keyPath:'id'})};q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error)})}
@@ -1197,11 +1247,12 @@ $('#openStyleBoardFromDrawBtn').onclick=()=>openSampleModal(STYLE_BOARD,'200 張
 $('#openCurrentSampleBtn').onclick=()=>state.current&&openSampleModal(sampleImageForTemplate(state.current.id),`${state.current.zh} 樣板參考圖`);
 $('#closeSampleBtn').onclick=closeSampleModal;
 $('#sampleModal').onclick=e=>{if(e.target===$('#sampleModal'))closeSampleModal()};
-$('#homeBtn').onclick=()=>{resetActivePointerSession();state.category=null;state.categoryPageLevel=null;renderHome();showView('#homeView')};
-$('#galleryBtn').onclick=async()=>{resetActivePointerSession();showView('#galleryView');await renderGallery()};
+$('#homeBtn').onclick=()=>{exitDrawFullscreen();resetActivePointerSession();state.category=null;state.categoryPageLevel=null;renderHome();showView('#homeView')};
+$('#galleryBtn').onclick=async()=>{exitDrawFullscreen();resetActivePointerSession();showView('#galleryView');await renderGallery()};
 $('#starBadge').onclick=async()=>{showView('#galleryView');await renderGallery()};
-$('#backFromGalleryBtn').onclick=()=>{state.category=null;state.categoryPageLevel=null;renderHome();showView('#homeView')};
+$('#backFromGalleryBtn').onclick=()=>{exitDrawFullscreen();state.category=null;state.categoryPageLevel=null;renderHome();showView('#homeView')};
 $('#clearBtn').onclick=()=>{if(confirm(`要清除「${LAYER_NAMES[state.activeLayer]}」層的內容嗎？`))clearLayer()};
+const drawFullscreenBtn=$('#drawFullscreenBtn');if(drawFullscreenBtn)drawFullscreenBtn.onclick=()=>setDrawFullscreen(!drawFocusMode);
 const prevTemplateBtn=$('#prevTemplateBtn');if(prevTemplateBtn)prevTemplateBtn.onclick=()=>openAdjacentTemplate(-1);
 const nextTemplateBtn=$('#nextTemplateBtn');if(nextTemplateBtn)nextTemplateBtn.onclick=()=>openAdjacentTemplate(1);
 const randomTemplateBtn=$('#randomTemplateBtn');if(randomTemplateBtn)randomTemplateBtn.onclick=()=>openRandomTemplate();
@@ -1258,6 +1309,61 @@ function setupColorWheel(){
   $('#colorBrightnessRange').oninput=e=>{colorWheelHSV.v=Math.max(.2,Math.min(1,Number(e.target.value)/100));updateColorWheelPointer()};$('#openColorWheelBtn').onclick=openColorWheel;$('#closeColorWheelBtn').onclick=()=>closeColorWheel(false);$('#confirmColorWheelBtn').onclick=()=>closeColorWheel(true);$('#colorWheelPopover').addEventListener('pointerdown',e=>{if(e.target===$('#colorWheelPopover'))closeColorWheel(false)})
 }
 
+let drawFocusMode=false,focusPaletteRestore=false,focusLearningPane='draw';
+const focusPronunciationPanel=()=>$('#learnPronunciationPanel');
+const focusPracticePanel=()=>$('#learnPracticePanel');
+function updateFocusCurrentLabel(){
+  const item=state.current;if(!item)return;
+  const emoji=$('#focusCurrentEmoji'),word=$('#focusCurrentWord');
+  if(emoji)emoji.textContent=item.emoji||'🎨';
+  if(word)word.textContent=`${item.zh}・${String(item.en||'').toUpperCase()}`;
+}
+function moveLearningPanelsToFocus(){
+  const host=$('#focusLearningHost');if(!host)return;
+  const pron=focusPronunciationPanel(),practice=focusPracticePanel();
+  if(pron&&pron.parentElement!==host)host.appendChild(pron);
+  if(practice&&practice.parentElement!==host)host.appendChild(practice);
+}
+function restoreLearningPanels(){
+  const card=$('#learnCard');if(!card)return;
+  const sample=$('#learnSamplePanel'),pron=focusPronunciationPanel(),practice=focusPracticePanel();
+  if(pron&&pron.parentElement!==card)card.insertBefore(pron,sample||card.firstChild);
+  if(practice&&practice.parentElement!==card)card.appendChild(practice);
+  if(pron)pron.hidden=false;if(practice)practice.hidden=false;
+}
+async function setFocusLearningPane(pane='draw'){
+  if(!['draw','practice','speech'].includes(pane))pane='draw';
+  focusLearningPane=pane;
+  const card=$('.workspace-card'),panel=$('#focusLearningPanel'),pron=focusPronunciationPanel(),practice=focusPracticePanel();
+  card?.classList.toggle('focus-pane-practice',pane==='practice');
+  card?.classList.toggle('focus-pane-speech',pane==='speech');
+  card?.classList.toggle('focus-pane-draw',pane==='draw');
+  $$('.focus-mode-btn').forEach(b=>{const active=b.dataset.focusPane===pane;b.classList.toggle('active',active);b.setAttribute('aria-selected',String(active))});
+  if(panel)panel.hidden=pane==='draw';
+  if(pron)pron.hidden=pane!=='speech';
+  if(practice)practice.hidden=pane!=='practice';
+  updateFocusCurrentLabel();
+  await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
+  if(pane==='practice'){await resizePracticeCanvases(true);drawPracticeGuide()}
+  else if(pane==='draw'){await resizeMainCanvases(true);showEraserCursorPreview()}
+}
+async function setDrawFullscreen(on){
+  const card=$('.workspace-card'),btn=$('#drawFullscreenBtn');if(!card)return;
+  on=!!on;if(on===drawFocusMode)return;resetActivePointerSession();drawFocusMode=on;
+  const bar=$('#focusLearningBar'),panel=$('#focusLearningPanel');
+  if(on){
+    focusPaletteRestore=state.paletteCollapsed;setPaletteCollapsed(true,false);document.body.classList.add('draw-focus-mode');card.classList.add('draw-focus-fullscreen');
+    moveLearningPanelsToFocus();if(bar)bar.hidden=false;updateFocusCurrentLabel();await setFocusLearningPane('draw');
+  }else{
+    document.body.classList.remove('draw-focus-mode');card.classList.remove('draw-focus-fullscreen','focus-pane-practice','focus-pane-speech','focus-pane-draw');
+    if(bar)bar.hidden=true;if(panel)panel.hidden=true;restoreLearningPanels();focusLearningPane='draw';setPaletteCollapsed(focusPaletteRestore,false);
+  }
+  if(btn){btn.setAttribute('aria-pressed',String(on));btn.textContent=on?'✕ 離開全螢幕':'⛶ 全螢幕畫板'}
+  await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
+  if(on&&focusLearningPane==='practice'){await resizePracticeCanvases(true);drawPracticeGuide()}else{await resizeMainCanvases(true);showEraserCursorPreview();if(!on){await resizePracticeCanvases(true);drawPracticeGuide()}}
+}
+function exitDrawFullscreen(){if(drawFocusMode)setDrawFullscreen(false)}
+
 function renderPalette(){
   $('#colorRow').innerHTML=COLORS.map(c=>`<button class="color-chip ${c===state.color?'active':''}" data-color="${c}" style="background:${c}" aria-label="選擇顏色 ${c}"></button>`).join('');
   $$('.color-chip').forEach(b=>b.onclick=()=>selectColor(b.dataset.color));
@@ -1268,11 +1374,12 @@ function setPaletteCollapsed(collapsed,persist=true){
   state.paletteCollapsed=!!collapsed;const dock=$('#paletteDock'),btn=$('#paletteToggleBtn');dock.classList.toggle('collapsed',state.paletteCollapsed);btn.setAttribute('aria-expanded',String(!state.paletteCollapsed));btn.innerHTML=state.paletteCollapsed?'🎨<span>展開</span>':'🎨<span>收合</span>';if(persist)localStorage.setItem(STORAGE_PALETTE_COLLAPSED,state.paletteCollapsed?'1':'0');
 }
 renderPalette();setupColorWheel();state.paletteCollapsed=defaultPaletteCollapsed();setPaletteCollapsed(state.paletteCollapsed,false);$('#paletteToggleBtn').onclick=()=>{setPaletteCollapsed(!state.paletteCollapsed);setTimeout(()=>{if($('#drawView').classList.contains('active'))resizeMainCanvases(true)},190)};
+$$('.focus-mode-btn').forEach(b=>b.addEventListener('click',()=>{if(drawFocusMode)setFocusLearningPane(b.dataset.focusPane)}));
 
 let holdTimer=null;const parentBtn=$('#parentBtn');const beginHold=e=>{e.preventDefault();clearTimeout(holdTimer);holdTimer=setTimeout(()=>openParent(),1200)};const endHold=()=>clearTimeout(holdTimer);parentBtn.addEventListener('pointerdown',beginHold);['pointerup','pointercancel','pointerleave'].forEach(ev=>parentBtn.addEventListener(ev,endHold));
 $('#closeParentBtn').onclick=closeParent;$('#closeParentBottomBtn').onclick=closeParent;$('#parentModal').onclick=e=>{if(e.target===$('#parentModal'))closeParent()};
 
-window.addEventListener('keydown',e=>{if(e.key==='Escape'){const cw=$('#colorWheelPopover');if(cw&&!cw.hidden)closeColorWheel(false)}});
-let resizeTimer;window.addEventListener('resize',()=>{clearTimeout(resizeTimer);resizeTimer=setTimeout(async()=>{if($('#drawView').classList.contains('active')){await resizeMainCanvases(true);await resizePracticeCanvases(true);drawPracticeGuide()}},220)});
+window.addEventListener('keydown',e=>{if(e.key==='Escape'){const cw=$('#colorWheelPopover');if(cw&&!cw.hidden){closeColorWheel(false);return}if(drawFocusMode)exitDrawFullscreen()}});
+let resizeTimer;window.addEventListener('resize',()=>{clearTimeout(resizeTimer);resizeTimer=setTimeout(async()=>{if($('#drawView').classList.contains('active')){if(!drawFocusMode||focusLearningPane==='draw')await resizeMainCanvases(true);if(!drawFocusMode||focusLearningPane==='practice'){await resizePracticeCanvases(true);drawPracticeGuide()}}},220)});
 if('serviceWorker'in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
 $('#penHint').style.display=settings.pressure?'':'none';updateStarUI();updateLayerUI();updateUndoButtons();renderHome();updateGuideStyleUI();

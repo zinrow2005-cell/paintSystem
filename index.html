@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#fff5da" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-  <title>小小畫家學習樂園 V1.7.30｜iPad 操作穩定性修正版</title>
+  <title>小小畫家學習樂園 V1.7.32｜全螢幕畫畫・寫字・發音整合版</title>
   <link rel="manifest" href="./manifest.webmanifest" />
   <link rel="icon" href="./icons/icon-192.png" />
   <link rel="apple-touch-icon" href="./icons/icon-192.png" />
@@ -17,7 +17,7 @@
     <button class="icon-btn" id="homeBtn" aria-label="首頁">🏠</button>
     <div class="brand">
       <h1>🎨 小小畫家學習樂園</h1>
-      <div class="version">V1.7.30｜iPad 操作穩定性修正・畫具／選色盤優化</div>
+      <div class="version">V1.7.32｜全螢幕畫畫／寫字／發音整合</div>
     </div>
     <div class="top-actions">
       <button class="star-badge" id="starBadge" aria-label="獎勵星星">⭐ <b id="starCount">0</b></button>
@@ -147,9 +147,26 @@
               <h2 id="drawTitle">蘋果 Apple</h2>
             </div>
             <div class="workspace-actions">
+              <button id="drawFullscreenBtn" class="soft-btn fullscreen-draw-btn" type="button" aria-pressed="false">⛶ 全螢幕畫板</button>
               <button id="toggleGuideBtn" class="soft-btn">👁️ 底圖 15%</button>
               <button id="clearBtn" class="danger-soft">清除此層</button>
             </div>
+          </div>
+
+          <div id="focusLearningBar" class="focus-learning-bar" hidden aria-label="全螢幕學習模式切換">
+            <div class="focus-mode-tabs" role="tablist" aria-label="畫畫、寫字與發音">
+              <button class="focus-mode-btn active" type="button" data-focus-pane="draw" role="tab" aria-selected="true">🎨 <span>畫畫</span></button>
+              <button class="focus-mode-btn" type="button" data-focus-pane="practice" role="tab" aria-selected="false">✍️ <span>寫字</span></button>
+              <button class="focus-mode-btn" type="button" data-focus-pane="speech" role="tab" aria-selected="false">🔊 <span>發音</span></button>
+            </div>
+            <div class="focus-current-word" aria-live="polite">
+              <span id="focusCurrentEmoji">🍎</span>
+              <strong id="focusCurrentWord">蘋果・APPLE</strong>
+            </div>
+          </div>
+
+          <div id="focusLearningPanel" class="focus-learning-panel" hidden>
+            <div id="focusLearningHost" class="focus-learning-host"></div>
           </div>
 
           <div class="guide-style-panel" aria-label="圖案樣式與底圖透明度">
@@ -260,43 +277,48 @@
           </div>
         </div>
 
-        <aside class="learn-card">
-          <div class="learn-emoji" id="learnEmoji">🍎</div>
-          <div class="word-en" id="wordEn">APPLE</div>
-          <div class="phonetic" id="wordKK">[ˈæpəl]</div>
-          <div class="speak-row"><button id="speakEnBtn" class="speak-btn">🔊 English</button><button id="speakEnSlowBtn" class="speak-btn secondary">🐢 慢速</button></div>
+        <aside class="learn-card" id="learnCard">
+          <div id="learnPronunciationPanel" class="learn-pronunciation-panel">
+            <div class="learn-emoji" id="learnEmoji">🍎</div>
+            <div class="word-en" id="wordEn">APPLE</div>
+            <div class="phonetic" id="wordKK">[ˈæpəl]</div>
+            <div class="speak-row"><button id="speakEnBtn" class="speak-btn">🔊 English</button><button id="speakEnSlowBtn" class="speak-btn secondary">🐢 慢速</button></div>
 
-          <div class="divider"></div>
+            <div class="divider"></div>
 
-          <div class="word-zh" id="wordZh">蘋果</div>
-          <div class="zhuyin" id="wordZhuyin">ㄆㄧㄣˊ ㄍㄨㄛˇ</div>
-          <div class="speak-row"><button id="speakZhBtn" class="speak-btn">🔊 中文</button><button id="speakZhCharBtn" class="speak-btn secondary">👆 逐字</button></div>
+            <div class="word-zh" id="wordZh">蘋果</div>
+            <div class="zhuyin" id="wordZhuyin">ㄆㄧㄣˊ ㄍㄨㄛˇ</div>
+            <div class="speak-row"><button id="speakZhBtn" class="speak-btn">🔊 中文</button><button id="speakZhCharBtn" class="speak-btn secondary">👆 逐字</button></div>
+          </div>
 
-
-          <div class="divider"></div>
-          <div id="sampleRefBlock" class="sample-ref-block" hidden>
-            <div class="practice-title">🖼️ 樣板參考</div>
-            <img id="sampleRefImg" class="sample-ref-img" alt="樣板參考圖">
-            <div class="sample-ref-actions">
-              <button id="openCurrentSampleBtn" class="soft-btn full">看這張樣板</button>
-              <button id="openStyleBoardFromDrawBtn" class="soft-btn full">看整張樣板</button>
+          <div id="learnSamplePanel" class="learn-sample-panel">
+            <div class="divider"></div>
+            <div id="sampleRefBlock" class="sample-ref-block" hidden>
+              <div class="practice-title">🖼️ 樣板參考</div>
+              <img id="sampleRefImg" class="sample-ref-img" alt="樣板參考圖">
+              <div class="sample-ref-actions">
+                <button id="openCurrentSampleBtn" class="soft-btn full">看這張樣板</button>
+                <button id="openStyleBoardFromDrawBtn" class="soft-btn full">看整張樣板</button>
+              </div>
             </div>
           </div>
 
-          <div class="practice-title">✍️ 文字塗寫練習</div>
-          <div class="practice-note">切換英文／中文／注音時會清空上一個練習畫面；英文單字只顯示一次。</div>
-          <div class="segmented practice-tabs">
-            <button class="seg active" data-practice="en">ABC 英文</button>
-            <button class="seg" data-practice="zh">中文字</button>
-            <button class="seg" data-practice="bpmf">ㄅㄆㄇ 注音</button>
-          </div>
-          <div class="practice-wrap">
-            <canvas id="practiceGuideCanvas"></canvas>
-            <canvas id="practiceCanvas"></canvas>
-          </div>
-          <div class="practice-actions">
-            <button id="practiceClearBtn" class="soft-btn">清除練習</button>
-            <button id="practiceGuideBtn" class="soft-btn">描字 → 仿寫</button>
+          <div id="learnPracticePanel" class="learn-practice-panel">
+            <div class="practice-title">✍️ 文字塗寫練習</div>
+            <div class="practice-note">切換英文／中文／注音時會清空上一個練習畫面；英文單字只顯示一次。</div>
+            <div class="segmented practice-tabs">
+              <button class="seg active" data-practice="en">ABC 英文</button>
+              <button class="seg" data-practice="zh">中文字</button>
+              <button class="seg" data-practice="bpmf">ㄅㄆㄇ 注音</button>
+            </div>
+            <div class="practice-wrap">
+              <canvas id="practiceGuideCanvas"></canvas>
+              <canvas id="practiceCanvas"></canvas>
+            </div>
+            <div class="practice-actions">
+              <button id="practiceClearBtn" class="soft-btn">清除練習</button>
+              <button id="practiceGuideBtn" class="soft-btn">描字 → 仿寫</button>
+            </div>
           </div>
         </aside>
       </div>

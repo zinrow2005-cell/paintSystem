@@ -1,4 +1,4 @@
-const CACHE_NAME = 'kids-drawing-v1-7-30-ipad-stable-20260912-01';
+const CACHE_NAME = 'kids-drawing-v1-7-32-focus-learning-20260912-01';
 
 const CORE_ASSETS = [
   './',
