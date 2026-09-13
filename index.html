@@ -6,13 +6,13 @@
   <meta name="theme-color" content="#fff5da" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-  <title>小小畫家學習樂園 V1.7.46｜GitHub 強制更新修正版</title>
+  <title>小小畫家學習樂園 V1.7.49｜圖層透明度與複製圖層版</title>
   <link rel="manifest" href="./manifest.webmanifest" />
   <link rel="icon" href="./icons/icon-192.png" />
   <link rel="apple-touch-icon" href="./icons/icon-192.png" />
   <script>
   (()=>{
-    const BUILD='1.7.46-force-20260913-01';
+    const BUILD='1.7.47-ratio-palette-20260913-03';
     const KEY='kidsDrawingBuild';
     if(localStorage.getItem(KEY)!==BUILD){
       localStorage.setItem(KEY,BUILD);
@@ -21,14 +21,14 @@
     }
   })();
   </script>
-  <link rel="stylesheet" href="./styles-v1746.css?v=20260913-01" />
+  <link rel="stylesheet" href="./styles-v1749.css?v=20260913-03" />
 </head>
 <body>
   <header class="topbar">
     <button class="icon-btn" id="homeBtn" aria-label="首頁">🏠</button>
     <div class="brand">
       <h1>🎨 小小畫家學習樂園</h1>
-      <div class="version">V1.7.46｜GitHub 強制更新・寫字調色盤位置統一</div>
+      <div class="version">V1.7.49｜圖層透明度・複製圖層</div>
     </div>
     <div class="top-actions">
       <button class="star-badge" id="starBadge" aria-label="獎勵星星">⭐ <b id="starCount">0</b></button>
@@ -224,8 +224,13 @@
                 <button id="layerRenameBtn" class="layer-mini-btn" type="button" title="重新命名自訂圖層">✏️ 名稱</button>
                 <button id="layerMoveDownBtn" class="layer-mini-btn" type="button" title="移到下一層（更下方）">↓ 下層</button>
                 <button id="layerMoveUpBtn" class="layer-mini-btn" type="button" title="移到上一層（更上方）">↑ 上層</button>
+                <button id="layerDuplicateBtn" class="layer-mini-btn" type="button" title="複製目前圖層與內容">📄 複製</button>
                 <button id="layerDeleteBtn" class="layer-mini-btn danger" type="button" title="刪除自訂圖層">🗑️ 刪除</button>
               </div>
+              <label class="layer-opacity-control" for="layerOpacityRange">
+                <span>圖層透明度 <b id="layerOpacityValue">100%</b></span>
+                <input id="layerOpacityRange" type="range" min="10" max="100" step="5" value="100" />
+              </label>
             </div>
                 </div>
 
@@ -448,6 +453,6 @@
 
   <div id="toast" class="toast" role="status"></div>
   <script src="./lineart.js?v=1.7.46"></script>
-  <script src="./app-v1746.js?v=20260913-01"></script>
+  <script src="./app-v1749.js?v=20260913-03"></script>
 </body>
 </html>
