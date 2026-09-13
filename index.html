@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#fff5da" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-  <title>小小畫家學習樂園 V1.7.50｜全工具實際操作回歸修正版</title>
+  <title>小小畫家學習樂園 V1.7.51｜全螢幕寫字逐字發音版</title>
   <link rel="manifest" href="./manifest.webmanifest" />
   <link rel="icon" href="./icons/icon-192.png" />
   <link rel="apple-touch-icon" href="./icons/icon-192.png" />
@@ -21,14 +21,14 @@
     }
   })();
   </script>
-  <link rel="stylesheet" href="./styles-v1750.css?v=20260913-04" />
+  <link rel="stylesheet" href="./styles-v1751.css?v=20260913-04" />
 </head>
 <body>
   <header class="topbar">
     <button class="icon-btn" id="homeBtn" aria-label="首頁">🏠</button>
     <div class="brand">
       <h1>🎨 小小畫家學習樂園</h1>
-      <div class="version">V1.7.50｜全工具操作回歸・調色盤收合修正</div>
+      <div class="version">V1.7.51｜全螢幕寫字逐字發音</div>
     </div>
     <div class="top-actions">
       <button class="star-badge" id="starBadge" aria-label="獎勵星星">⭐ <b id="starCount">0</b></button>
@@ -345,6 +345,7 @@
               <button class="seg" data-practice="zh">中文字</button>
               <button class="seg" data-practice="bpmf">ㄅㄆㄇ 注音</button>
             </div>
+            <div id="practicePronunciationBar" class="practice-pronunciation-bar" hidden aria-label="寫字練習發音"></div>
             <div class="practice-wrap">
               <canvas id="practiceGuideCanvas"></canvas>
               <canvas id="practiceCanvas"></canvas>
@@ -453,6 +454,6 @@
 
   <div id="toast" class="toast" role="status"></div>
   <script src="./lineart.js?v=1.7.50"></script>
-  <script src="./app-v1750.js?v=20260913-04"></script>
+  <script src="./app-v1751.js?v=20260913-04"></script>
 </body>
 </html>
