@@ -1,10 +1,10 @@
-const CACHE_NAME = 'kids-drawing-v1-7-54-keep-scroll-fullscreen-nav-20260913-01';
+const CACHE_NAME = 'kids-drawing-v1-7-55-navqueue-ipad-20260913-01';
 
 const CORE_ASSETS = [
   './',
   './index.html',
-  './styles-v1754.css',
-  './app-v1754.js',
+  './styles-v1755.css',
+  './app-v1755.js',
   './lineart.js',
   './manifest.webmanifest',
   './icons/icon-192.png',
@@ -40,7 +40,7 @@ self.addEventListener('fetch', event => {
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
 
-  const isCoreCode = ['index.html','styles-v1754.css','app-v1754.js','lineart.js','manifest.webmanifest'].some(name => url.pathname.endsWith('/'+name));
+  const isCoreCode = ['index.html','styles-v1755.css','app-v1755.js','lineart.js','manifest.webmanifest'].some(name => url.pathname.endsWith('/'+name));
   if (request.mode === 'navigate' || isCoreCode) {
     event.respondWith(
       fetch(request, {cache:'no-store'})
