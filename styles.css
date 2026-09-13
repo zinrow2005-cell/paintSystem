@@ -1250,3 +1250,72 @@ html::selection,body::selection,body *::selection{
 img,svg,a{-webkit-user-drag:none!important;user-drag:none!important}
 /* 保留所有控制元件的正常點擊/拖曳；只禁止文字反白。 */
 button,input,select,label,summary,[role="button"]{-webkit-user-select:none!important;user-select:none!important}
+
+
+/* V1.7.44｜收藏成功提示＋全螢幕寫字共用畫具／調色盤／筆觸 */
+/* 全螢幕收藏提示一定顯示在畫布最上層 */
+body.draw-focus-mode .reward-overlay{
+  z-index:2147483638!important;
+  background:rgba(255,249,224,.78)!important;
+  pointer-events:none!important;
+}
+body.draw-focus-mode .reward-card{
+  min-width:min(420px,calc(100vw - 32px));
+  padding:28px 34px!important;
+  border:2px solid rgba(255,201,83,.42);
+  box-shadow:0 26px 80px rgba(72,51,20,.28)!important;
+}
+body.draw-focus-mode .reward-card strong{font-size:clamp(25px,4vw,38px)!important}
+body.draw-focus-mode .reward-card span{font-size:clamp(14px,2.2vw,20px)!important;text-align:center}
+body.draw-focus-mode .reward-star{font-size:clamp(72px,11vw,110px)!important}
+
+/* 寫字模式：練習簿仍佔滿主畫面，但把原本同一套畫具調色盤浮在左側。 */
+.draw-fullscreen-shell.focus-pane-practice .canvas-stage{
+  display:block!important;
+  position:absolute!important;
+  inset:0!important;
+  z-index:170!important;
+  width:100%!important;
+  height:100%!important;
+  margin:0!important;
+  padding:0!important;
+  background:transparent!important;
+  border:0!important;
+  box-shadow:none!important;
+  pointer-events:none!important;
+  overflow:visible!important;
+}
+.draw-fullscreen-shell.focus-pane-practice .canvas-wrap{display:none!important}
+.draw-fullscreen-shell.focus-pane-practice .palette-dock{
+  display:flex!important;
+  pointer-events:auto!important;
+  z-index:190!important;
+  top:8px!important;
+  left:8px!important;
+}
+/* 寫字模式保留浮動筆觸工具，但不顯示畫畫用 Undo/Redo/收藏列。 */
+.draw-fullscreen-shell.focus-pane-practice .draw-fullscreen-bottom{
+  display:block!important;
+  z-index:210!important;
+}
+.draw-fullscreen-shell.focus-pane-practice .toolbar{display:block!important}
+.draw-fullscreen-shell.focus-pane-practice .toolbar .action-row{display:none!important}
+.draw-fullscreen-shell.focus-pane-practice .fullscreen-brush-toggle{
+  display:inline-flex!important;
+  bottom:68px!important;
+  pointer-events:auto!important;
+}
+.draw-fullscreen-shell.focus-pane-practice .brush-control-panel{
+  display:grid!important;
+  bottom:122px!important;
+  pointer-events:auto!important;
+}
+/* 寫字練習本本身保持可畫，工具浮層不改變練習 Canvas 尺寸。 */
+.draw-fullscreen-shell.focus-pane-practice .focus-learning-panel{z-index:120!important}
+.draw-fullscreen-shell.focus-pane-practice .learn-practice-panel{position:relative!important;z-index:121!important}
+
+@media(max-width:650px){
+  .draw-fullscreen-shell.focus-pane-practice .palette-dock{top:4px!important;left:4px!important}
+  .draw-fullscreen-shell.focus-pane-practice .fullscreen-brush-toggle{bottom:66px!important;left:4px!important}
+  .draw-fullscreen-shell.focus-pane-practice .brush-control-panel{bottom:114px!important;left:4px!important;right:4px!important;width:calc(100vw - 8px)!important;max-height:min(46vh,340px)!important}
+}

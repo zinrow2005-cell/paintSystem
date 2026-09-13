@@ -1241,7 +1241,7 @@ async function mergedImage(){const {w,h}=canvasCssSize();const c=document.create
 function db(){return new Promise((res,rej)=>{const q=indexedDB.open('kidsDrawingDB',2);q.onupgradeneeded=()=>{if(!q.result.objectStoreNames.contains('works'))q.result.createObjectStore('works',{keyPath:'id'})};q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error)})}
 async function saveWork(){
   if(!state.current)return;const data={id:Date.now(),templateId:state.current.id,title:`${state.current.zh}・${state.current.en}`,lv:state.current.lv,created:new Date().toISOString(),traceCompleted:state.traceCompleted.size,traceTotal:state.traceSteps.length,traceRating:traceRatingValue(),image:await mergedImage()};
-  try{const d=await db(),tx=d.transaction('works','readwrite');tx.objectStore('works').put(data);await new Promise((r,j)=>{tx.oncomplete=r;tx.onerror=()=>j(tx.error)});const first=!doneTemplates().has(state.current.id);markDone(state.current.id);const earned=first?2:1;setStars(getStars()+earned);showReward(earned);if(settings.rewardSound)setTimeout(()=>speak('完成了，好棒！','zh-TW',.82),250)}catch(e){console.error(e);toast('作品保存失敗')}
+  try{const d=await db(),tx=d.transaction('works','readwrite');tx.objectStore('works').put(data);await new Promise((r,j)=>{tx.oncomplete=r;tx.onerror=()=>j(tx.error)});const first=!doneTemplates().has(state.current.id);markDone(state.current.id);const earned=first?2:1;setStars(getStars()+earned);showReward(earned);toast('⭐ 已收藏作品');if(settings.rewardSound)setTimeout(()=>speak('完成了，好棒！','zh-TW',.82),250)}catch(e){console.error(e);toast('作品保存失敗，請再試一次')}
 }
 async function allWorks(){try{const d=await db();return await new Promise((r,j)=>{const q=d.transaction('works').objectStore('works').getAll();q.onsuccess=()=>r(q.result.sort((a,b)=>b.id-a.id));q.onerror=()=>j(q.error)})}catch{return[]}}
 async function deleteWork(id){const d=await db(),tx=d.transaction('works','readwrite');tx.objectStore('works').delete(id);return new Promise(r=>tx.oncomplete=r)}
@@ -1268,7 +1268,7 @@ async function renderGallery(){
 }
 function showStepFlash(){const o=$('#stepFlash');if(!o)return;o.classList.remove('show');void o.offsetWidth;o.classList.add('show');o.setAttribute('aria-hidden','false');setTimeout(()=>{o.classList.remove('show');o.setAttribute('aria-hidden','true')},900)}
 function showTraceComplete(stars){$('#rewardText').textContent=`描圖完成・${'⭐'.repeat(stars)}${'☆'.repeat(3-stars)}`;const o=$('#rewardOverlay');o.querySelector('strong').textContent='描圖挑戰完成！';o.classList.add('show');o.setAttribute('aria-hidden','false');setTimeout(()=>{o.classList.remove('show');o.setAttribute('aria-hidden','true');o.querySelector('strong').textContent='完成一張！'},1500)}
-function showReward(n){$('#rewardText').textContent=n===2?'第一次完成這張，得到 2 顆星！':'得到 1 顆星！';const o=$('#rewardOverlay');o.querySelector('strong').textContent='完成一張！';o.classList.add('show');o.setAttribute('aria-hidden','false');setTimeout(()=>{o.classList.remove('show');o.setAttribute('aria-hidden','true')},1400)}
+function showReward(n){$('#rewardText').textContent=n===2?'作品已存到「我的作品」・得到 2 顆星！':'作品已存到「我的作品」・得到 1 顆星！';const o=$('#rewardOverlay');o.querySelector('strong').textContent='⭐ 已收藏作品！';o.classList.add('show');o.setAttribute('aria-hidden','false');setTimeout(()=>{o.classList.remove('show');o.setAttribute('aria-hidden','true');o.querySelector('strong').textContent='完成一張！'},1700)}
 
 function sampleImageForTemplate(id){return simpleColorGuideSrc(id)||STYLE_BOARD}
 function openSampleModal(src,title){
@@ -1542,6 +1542,8 @@ async function setFocusLearningPane(pane='draw'){
   updateFocusCurrentLabel();
   await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
   if(pane==='practice'){
+    // 寫字模式沿用同一套畫具、顏色、筆觸；預設收合，避免遮住練習字。
+    setPaletteCollapsed(true,false);setFullscreenBrushControlsCollapsed(true);
     state.practiceCanvasSize=null;
     await resizePracticeCanvases(true);drawPracticeGuide();
   }else{
