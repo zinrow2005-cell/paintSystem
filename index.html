@@ -6,18 +6,29 @@
   <meta name="theme-color" content="#fff5da" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-  <title>小小畫家學習樂園 V1.7.45｜寫字調色盤位置統一修正版</title>
+  <title>小小畫家學習樂園 V1.7.46｜GitHub 強制更新修正版</title>
   <link rel="manifest" href="./manifest.webmanifest" />
   <link rel="icon" href="./icons/icon-192.png" />
   <link rel="apple-touch-icon" href="./icons/icon-192.png" />
-  <link rel="stylesheet" href="./styles.css?v=1.7.45" />
+  <script>
+  (()=>{
+    const BUILD='1.7.46-force-20260913-01';
+    const KEY='kidsDrawingBuild';
+    if(localStorage.getItem(KEY)!==BUILD){
+      localStorage.setItem(KEY,BUILD);
+      if('caches' in window){caches.keys().then(keys=>Promise.all(keys.map(k=>caches.delete(k)))).catch(()=>{});}
+      if('serviceWorker' in navigator){navigator.serviceWorker.getRegistrations().then(rs=>Promise.all(rs.map(r=>r.unregister()))).catch(()=>{});}
+    }
+  })();
+  </script>
+  <link rel="stylesheet" href="./styles-v1746.css?v=20260913-01" />
 </head>
 <body>
   <header class="topbar">
     <button class="icon-btn" id="homeBtn" aria-label="首頁">🏠</button>
     <div class="brand">
       <h1>🎨 小小畫家學習樂園</h1>
-      <div class="version">V1.7.45｜寫字調色盤位置統一・收藏提示・全系統防選取</div>
+      <div class="version">V1.7.46｜GitHub 強制更新・寫字調色盤位置統一</div>
     </div>
     <div class="top-actions">
       <button class="star-badge" id="starBadge" aria-label="獎勵星星">⭐ <b id="starCount">0</b></button>
@@ -436,7 +447,7 @@
   </div>
 
   <div id="toast" class="toast" role="status"></div>
-  <script src="./lineart.js?v=1.7.45"></script>
-  <script src="./app.js?v=1.7.45"></script>
+  <script src="./lineart.js?v=1.7.46"></script>
+  <script src="./app-v1746.js?v=20260913-01"></script>
 </body>
 </html>
