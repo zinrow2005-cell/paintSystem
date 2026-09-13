@@ -1,4 +1,4 @@
-const CACHE_NAME = 'kids-drawing-v1-7-44-save-practice-tools-20260913-01';
+const CACHE_NAME = 'kids-drawing-v1-7-45-practice-palette-position-20260913-01';
 
 const CORE_ASSETS = [
   './',

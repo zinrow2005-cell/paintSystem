@@ -1319,3 +1319,33 @@ body.draw-focus-mode .reward-star{font-size:clamp(72px,11vw,110px)!important}
   .draw-fullscreen-shell.focus-pane-practice .fullscreen-brush-toggle{bottom:66px!important;left:4px!important}
   .draw-fullscreen-shell.focus-pane-practice .brush-control-panel{bottom:114px!important;left:4px!important;right:4px!important;width:calc(100vw - 8px)!important;max-height:min(46vh,340px)!important}
 }
+
+
+/* V1.7.45｜全螢幕寫字調色盤位置與畫畫模式統一 */
+/* 寫字時沿用畫畫模式相同的左上安全位置，不再貼到頂部而被模式列遮住。 */
+.draw-fullscreen-shell.focus-pane-practice .palette-dock{
+  top:64px!important;
+  left:max(7px,env(safe-area-inset-left))!important;
+  right:auto!important;
+}
+/* iPad / 窄螢幕：位置與畫畫模式完全一致。 */
+@media(max-width:800px){
+  .draw-fullscreen-shell.focus-pane-practice .palette-dock{top:58px!important;}
+}
+@media(max-width:650px){
+  .draw-fullscreen-shell.focus-pane-practice .palette-dock{top:58px!important;left:max(7px,env(safe-area-inset-left))!important;}
+  .draw-fullscreen-shell.focus-pane-practice .palette-dock:not(.collapsed){top:56px!important;left:4px!important;right:4px!important;}
+  /* 收合時保留左側 50px 給調色盤按鈕，避免 ABC/中文/注音標籤蓋住它。 */
+  .draw-fullscreen-shell.focus-pane-practice .learn-practice-panel .practice-tabs{
+    left:56px!important;
+    right:4px!important;
+    transform:none!important;
+    width:auto!important;
+    max-width:none!important;
+  }
+  /* 展開調色盤時由調色盤置頂；關閉後寫字分頁立即可操作。 */
+  .draw-fullscreen-shell.focus-pane-practice .palette-dock:not(.collapsed){z-index:205!important;}
+}
+@media(orientation:landscape) and (max-height:620px){
+  .draw-fullscreen-shell.focus-pane-practice .palette-dock{top:52px!important;}
+}
