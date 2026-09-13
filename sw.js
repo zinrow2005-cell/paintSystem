@@ -1,10 +1,10 @@
-const CACHE_NAME = 'kids-drawing-v1-7-49-layer-opacity-copy-20260913-01';
+const CACHE_NAME = 'kids-drawing-v1-7-50-regression-20260913-01';
 
 const CORE_ASSETS = [
   './',
   './index.html',
-  './styles-v1749.css',
-  './app-v1749.js',
+  './styles-v1750.css',
+  './app-v1750.js',
   './lineart.js',
   './manifest.webmanifest',
   './icons/icon-192.png',
@@ -40,7 +40,7 @@ self.addEventListener('fetch', event => {
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
 
-  const isCoreCode = ['index.html','styles-v1749.css','app-v1749.js','lineart.js','manifest.webmanifest'].some(name => url.pathname.endsWith('/'+name));
+  const isCoreCode = ['index.html','styles-v1750.css','app-v1750.js','lineart.js','manifest.webmanifest'].some(name => url.pathname.endsWith('/'+name));
   if (request.mode === 'navigate' || isCoreCode) {
     event.respondWith(
       fetch(request, {cache:'no-store'})
