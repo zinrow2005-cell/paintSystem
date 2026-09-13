@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#fff5da" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-  <title>小小畫家學習樂園 V1.7.52｜注音拆音合音完整教學版</title>
+  <title>小小畫家學習樂園 V1.7.54｜切圖不跳頂與全螢幕前後切換版</title>
   <link rel="manifest" href="./manifest.webmanifest" />
   <link rel="icon" href="./icons/icon-192.png" />
   <link rel="apple-touch-icon" href="./icons/icon-192.png" />
@@ -21,14 +21,14 @@
     }
   })();
   </script>
-  <link rel="stylesheet" href="./styles-v1752.css?v=20260913-05" />
+  <link rel="stylesheet" href="./styles-v1754.css?v=20260913-06" />
 </head>
 <body>
   <header class="topbar">
     <button class="icon-btn" id="homeBtn" aria-label="首頁">🏠</button>
     <div class="brand">
       <h1>🎨 小小畫家學習樂園</h1>
-      <div class="version">V1.7.52｜注音拆音・合音・詞彙發音</div>
+      <div class="version">V1.7.54｜切圖不跳頂＋全螢幕前後切換</div>
     </div>
     <div class="top-actions">
       <button class="star-badge" id="starBadge" aria-label="獎勵星星">⭐ <b id="starCount">0</b></button>
@@ -172,6 +172,10 @@
             <div class="focus-current-word" aria-live="polite">
               <span id="focusCurrentEmoji">🍎</span>
               <strong id="focusCurrentWord">蘋果・APPLE</strong>
+            </div>
+            <div class="focus-template-nav" aria-label="全螢幕切換圖案">
+              <button id="focusPrevTemplateBtn" class="focus-mini-nav-btn" type="button">← 上一張</button>
+              <button id="focusNextTemplateBtn" class="focus-mini-nav-btn" type="button">下一張 →</button>
             </div>
             <button id="focusExitBtn" class="focus-exit-btn" type="button" aria-label="離開全螢幕畫板">✕ 離開</button>
           </div>
@@ -454,6 +458,6 @@
 
   <div id="toast" class="toast" role="status"></div>
   <script src="./lineart.js?v=1.7.50"></script>
-  <script src="./app-v1752.js?v=20260913-05"></script>
+  <script src="./app-v1754.js?v=20260913-06"></script>
 </body>
 </html>
